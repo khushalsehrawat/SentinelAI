@@ -1,0 +1,22 @@
+[
+  {
+    "source": "Firewall-Gateway-01",
+    "log": "Failed SSH login attempt for user root from IP 185.231.222.14 port 22 – password authentication failed 8 times."
+  },
+  {
+    "source": "Linux-Server-02",
+    "log": "User 'john' executed 'sudo cat /etc/shadow' – unexpected privilege escalation detected."
+  },
+  {
+    "source": "Web-Application",
+    "log": "Multiple HTTP requests with suspicious payload: UNION SELECT password FROM users -- indicating SQL injection attempt."
+  },
+  {
+    "source": "Database-Cluster",
+    "log": "Unusual outbound traffic to unknown external IP 91.244.67.5 – potential data exfiltration vector."
+  },
+  {
+    "source": "Windows-AD",
+    "log": "Brute force RDP attempts detected for admin user from IP 102.44.11.88 – 154 failed attempts in 2 minutes."
+  }
+]
