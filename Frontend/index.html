@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AI Threat Detection Platform</title>
+    <title>SentinelAI — AI Threat Detection & SOC Platform</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -14,226 +14,1074 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
     <style>
+        :root {
+            --primary: #00ffb0;
+            --primary-soft: rgba(0, 255, 176, 0.16);
+            --accent: #00c27a;
+            --bg-main: #020b08;
+            --bg-alt: #041410;
+            --border-soft: rgba(0, 255, 150, 0.32);
+        }
 
-        /* GLOBAL THEME */
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #020d0a, #031510, #06261c);
-            font-family: "Inter", sans-serif;
+            background: radial-gradient(circle at top left, #033322 0, #020b08 40%, #020d11 100%);
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #f6fff9;
             overflow-x: hidden;
-            color: white;
         }
 
         /* CYBER GRID BACKGROUND */
         body::before {
             content: "";
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-size: 50px 50px;
+            inset: 0;
+            background-size: 46px 46px;
             background-image:
-                    linear-gradient(to right, rgba(0,255,150,0.08) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(0,255,150,0.08) 1px, transparent 1px);
-            z-index: -1;
+                    linear-gradient(to right, rgba(0,255,150,0.09) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(0,255,150,0.07) 1px, transparent 1px);
+            opacity: .7;
+            z-index: -2;
             animation: gridMove 18s linear infinite;
         }
 
         @keyframes gridMove {
             from { transform: translateY(0); }
-            to { transform: translateY(-50px); }
+            to { transform: translateY(-60px); }
         }
 
-        /* HERO SECTION */
-        .hero {
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
+        /* NAVBAR */
+        .nav-glass {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            backdrop-filter: blur(18px);
+            background: radial-gradient(circle at top, rgba(0,0,0,0.85), rgba(0,0,0,0.5));
+            border-bottom: 1px solid rgba(0,255,150,0.3);
+        }
+
+        .brand-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: radial-gradient(circle at top left, rgba(0,255,150,0.25), rgba(0,0,0,0.7));
+            border: 1px solid rgba(0,255,150,0.5);
+        }
+
+        .brand-logo {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            background: conic-gradient(from 160deg, #00ffb0, #00c27a, #0af, #00ffb0);
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
-            padding: 0 50px;
-            text-align: center;
+            color: #020b08;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .brand-text-main {
+            font-weight: 700;
+            letter-spacing: .04em;
+            font-size: .9rem;
+        }
+
+        .brand-text-sub {
+            font-size: .7rem;
+            opacity: .8;
+        }
+
+        .nav-link-custom {
+            font-size: .85rem;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: #d4fff0;
+            opacity: .78;
+        }
+
+        .nav-link-custom:hover,
+        .nav-link-custom.active {
+            color: var(--primary);
+            opacity: 1;
+        }
+
+        .btn-outline-cyber {
+            border-radius: 999px;
+            border: 1px solid rgba(0,255,176,0.6);
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--primary);
+            padding: 7px 16px;
+            background: transparent;
+        }
+
+        .btn-outline-cyber:hover {
+            background: var(--primary-soft);
+            color: #03150f;
+        }
+
+        .btn-cyber {
+            border-radius: 999px;
+            border: none;
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            padding: 9px 22px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #03150f;
+            font-weight: 700;
+            box-shadow: 0 0 20px rgba(0,255,176,0.4);
+        }
+
+        .btn-cyber:hover {
+            transform: translateY(-1px) scale(1.02);
+            box-shadow: 0 0 26px rgba(0,255,176,0.65);
+        }
+
+        main {
+            padding-top: 78px;
+        }
+
+        /* HERO */
+        .hero {
+            min-height: 88vh;
+            display: flex;
+            align-items: center;
+            padding: 60px 6% 40px;
+        }
+
+        .pill-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.65);
+            border: 1px solid rgba(0,255,150,0.45);
+            font-size: .75rem;
+            color: #bfffe6;
+        }
+
+        .pill-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 12px var(--primary);
         }
 
         .hero-title {
-            font-size: 3.2rem;
+            font-size: clamp(2.6rem, 3.8vw, 3.2rem);
             font-weight: 800;
-            margin-bottom: 15px;
-            background: linear-gradient(135deg, #00ffb0, #00dd77);
+            margin: 18px 0 10px;
+            line-height: 1.15;
+            background: linear-gradient(120deg, #eafff7, #8dffcf, #4ee3ff);
             -webkit-background-clip: text;
             color: transparent;
         }
 
-        .hero-subtitle {
-            font-size: 1.25rem;
-            opacity: 0.9;
+        .hero-project-name {
+            font-size: clamp(1.9rem, 2.5vw, 2.2rem);
+            font-weight: 800;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--primary);
         }
 
-        .hero-btn {
-            margin-top: 30px;
-            padding: 14px 40px;
-            font-size: 1.2rem;
+        .hero-sub {
+            font-size: .96rem;
+            opacity: .9;
+            max-width: 540px;
+        }
+
+        .hero-tagline {
+            margin-top: 10px;
+            font-size: .9rem;
+            font-style: italic;
+            color: #9dfdd4;
+        }
+
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .hero-badge {
+            font-size: .76rem;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(0,255,176,0.4);
+            background: rgba(0,0,0,0.6);
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 26px;
+        }
+
+        /* HERO RIGHT PANEL */
+        .hero-right {
+            position: relative;
+            padding: 20px;
+        }
+
+        .glass-panel {
+            background: radial-gradient(circle at top left, rgba(0,255,176,0.08), rgba(4,18,14,0.98));
+            border-radius: 20px;
+            border: 1px solid rgba(0,255,176,0.3);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.8);
+            padding: 20px 20px 16px;
+        }
+
+        .glass-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .glass-header span {
+            font-size: .75rem;
+            opacity: .85;
+        }
+
+        .dot-group span {
+            width: 8px;
+            height: 8px;
+            display: inline-block;
+            border-radius: 999px;
+            margin-left: 4px;
+        }
+
+        .terminal {
+            background: rgba(0,0,0,0.7);
+            border-radius: 12px;
+            border: 1px solid rgba(0,255,176,0.2);
+            padding: 12px 14px;
+            font-family: "JetBrains Mono", monospace;
+            font-size: .78rem;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .term-label {
+            color: #79ffbf;
+        }
+
+        .term-line-muted {
+            opacity: .7;
+        }
+
+        .metric-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 14px;
+        }
+
+        .metric-card {
+            flex: 1;
+            background: rgba(0,0,0,0.68);
+            border-radius: 14px;
+            border: 1px solid rgba(0,255,176,0.3);
+            padding: 10px 12px;
+        }
+
+        .metric-label {
+            font-size: .72rem;
+            opacity: .78;
+        }
+
+        .metric-value {
+            font-size: 1.05rem;
             font-weight: 700;
-            border: none;
-            color: #05120e;
-            background: linear-gradient(135deg, #00ffc3, #00c27a);
-            border-radius: 10px;
-            transition: 0.3s;
         }
 
-        .hero-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 25px #00ffb0;
+        .pill-sev-high {
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: rgba(255, 115, 80, .15);
+            color: #ffb199;
+            font-size: .7rem;
         }
 
-        /* FEATURE CARDS */
-        .feature-card {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(0,255,140,0.25);
-            border-radius: 15px;
-            padding: 25px;
-            backdrop-filter: blur(10px);
-            transition: 0.35s;
+        .pill-sev-critical {
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: rgba(255, 71, 71, .18);
+            color: #ff9d9d;
+            font-size: .7rem;
         }
 
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 0 25px rgba(0,255,140,0.35);
+        .floating-chip {
+            position: absolute;
+            top: -18px;
+            right: 10px;
+            font-size: .7rem;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #020b08;
+            border: 1px solid rgba(0,255,176,0.5);
+            box-shadow: 0 0 18px rgba(0,255,176,0.4);
         }
 
-        /* EXPLAINER SECTION */
-        .explain-section {
-            padding: 80px 5%;
+        /* GENERIC SECTION */
+        section {
+            padding: 70px 6% 50px;
         }
 
-        .explain-title {
-            font-size: 2.2rem;
+        .section-label {
+            font-size: .74rem;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: #89ffd4;
+            opacity: .85;
+        }
+
+        .section-title {
+            font-size: 1.7rem;
             font-weight: 700;
-            color: #00ffb0;
-            margin-bottom: 30px;
+            margin-bottom: 6px;
         }
 
-        .explain-line {
-            width: 55px;
-            height: 4px;
-            background: linear-gradient(90deg,#00ffb0,#00c27a);
-            margin-bottom: 25px;
+        .section-sub {
+            font-size: .92rem;
+            max-width: 560px;
+            opacity: .9;
         }
 
-        .explain-box {
-            background: rgba(255,255,255,0.05);
-            border-left: 4px solid #00ff99;
-            padding: 18px 25px;
-            border-radius: 8px;
-            margin-bottom: 18px;
+        /* ABOUT / MEANING */
+        .about-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr);
+            gap: 30px;
+            margin-top: 32px;
+        }
+
+        .about-box {
+            background: rgba(0,0,0,0.7);
+            border-radius: 18px;
+            border: 1px solid rgba(0,255,176,0.3);
+            padding: 20px 22px;
+        }
+
+        .about-box h5 {
+            font-size: 1.05rem;
+            margin-bottom: 8px;
+        }
+
+        .about-list {
+            padding-left: 18px;
+            font-size: .9rem;
+        }
+
+        .about-pill {
+            display: inline-block;
+            font-size: .78rem;
+            padding: 5px 11px;
+            border-radius: 999px;
+            border: 1px solid rgba(0,255,176,0.4);
+            margin-right: 6px;
+            margin-top: 6px;
+            background: rgba(0,0,0,0.7);
+        }
+
+        /* CAPABILITIES */
+        .cap-card {
+            background: rgba(0,0,0,0.78);
+            border-radius: 16px;
+            border: 1px solid rgba(0,255,176,0.26);
+            padding: 18px 18px 16px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .cap-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 12px;
+            background: radial-gradient(circle at top, rgba(0,255,176,0.5), rgba(0,0,0,0.9));
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .cap-title {
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+
+        .cap-text {
+            font-size: .88rem;
+            opacity: .9;
+        }
+
+        .cap-tag {
+            font-size: .74rem;
+            margin-top: auto;
+            opacity: .8;
+            color: #9dfdd4;
+        }
+
+        /* WORKFLOW TIMELINE */
+        .workflow {
+            background: radial-gradient(circle at top, rgba(0,255,176,0.08), #020b08 50%);
+        }
+
+        .timeline {
+            position: relative;
+            margin-top: 36px;
+        }
+
+        .timeline-line {
+            position: absolute;
+            left: 16px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, rgba(0,255,176,0.8), transparent);
+            opacity: .6;
+        }
+
+        .timeline-step {
+            position: relative;
+            padding-left: 48px;
+            margin-bottom: 26px;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 10px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #020b08;
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 12px rgba(0,255,176,0.8);
+        }
+
+        .timeline-step h6 {
+            font-size: .94rem;
+            margin-bottom: 4px;
+        }
+
+        .timeline-step p {
+            font-size: .86rem;
+            opacity: .9;
+        }
+
+        /* ARCHITECTURE / STACK ROW */
+        .arch-card {
+            background: rgba(0,0,0,0.78);
+            border-radius: 16px;
+            border: 1px solid rgba(0,255,176,0.2);
+            padding: 16px 18px;
+            font-size: .88rem;
+        }
+
+        .tech-badges span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .78rem;
+            padding: 5px 11px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.7);
+            border: 1px solid rgba(0,255,176,0.32);
+            margin: 4px 4px 0 0;
+        }
+
+        /* MODULES SECTION */
+        .modules {
+            background: #020b08;
+        }
+
+        .module-card {
+            background: rgba(0,0,0,0.82);
+            border-radius: 14px;
+            border: 1px solid rgba(0,255,176,0.24);
+            padding: 14px 16px;
+            font-size: .88rem;
+            height: 100%;
+        }
+
+        .module-card a {
+            text-decoration: none;
+            color: var(--primary);
+            font-size: .8rem;
+        }
+
+        /* CTA */
+        .cta-section {
+            text-align: center;
+        }
+
+        .cta-badge {
+            font-size: .8rem;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid rgba(0,255,176,0.45);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .cta-title {
+            font-size: 1.6rem;
+            margin-top: 16px;
+            margin-bottom: 6px;
+        }
+
+        .cta-sub {
+            font-size: .9rem;
+            opacity: .9;
+            margin-bottom: 24px;
         }
 
         /* FOOTER */
         .footer {
             text-align: center;
-            padding: 25px;
-            margin-top: 70px;
-            background: rgba(0,0,0,0.35);
+            padding: 20px;
+            margin-top: 40px;
+            background: rgba(0,0,0,0.8);
+            border-top: 1px solid rgba(0,255,150,0.25);
+            font-size: .8rem;
+            opacity: .9;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 992px) {
+            .hero {
+                flex-direction: column;
+                padding-top: 40px;
+            }
+            .hero-right {
+                margin-top: 28px;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            section {
+                padding-left: 5%;
+                padding-right: 5%;
+            }
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
-
 </head>
 
 <body>
 
-<!-- HERO -->
-<div class="hero" data-aos="zoom-in">
-    <h1 class="hero-title">AI-Driven Threat Detection & Incident Response</h1>
-    <p class="hero-subtitle">
-        A next-generation SOC platform powered by Google Gemini + Spring Boot.<br>
-        Real-time log analysis • MITRE ATT&CK mapping • Risk scoring • Auto-remediation
-    </p>
-    <a href="login.html" class="hero-btn">Access Dashboard</a>
-</div>
+<!-- NAVBAR -->
+<nav class="nav-glass navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="#">
+            <div class="brand-pill">
+                <div class="brand-logo">S</div>
+                <div>
+                    <div class="brand-text-main">SentinelAI</div>
+                    <div class="brand-text-sub">GenAI SOC & Threat Detection</div>
+                </div>
+            </div>
+        </a>
 
-<!-- FEATURE CARDS -->
-<div class="container my-5">
-    <div class="row g-4">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-        <div class="col-md-4" data-aos="fade-up">
-            <div class="feature-card text-center">
-                <i class="fas fa-brain fa-3x mb-3" style="color:#00ffc3;"></i>
-                <h4>AI Powered Detection</h4>
-                <p>Gemini analyzes logs, detects anomalies, classifies threats with actionable insights.</p>
+        <div class="collapse navbar-collapse" id="navMain">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+                <li class="nav-item mx-1">
+                    <a class="nav-link nav-link-custom active" href="#hero">Overview</a>
+                </li>
+                <li class="nav-item mx-1">
+                    <a class="nav-link nav-link-custom" href="#about">Meaning</a>
+                </li>
+                <li class="nav-item mx-1">
+                    <a class="nav-link nav-link-custom" href="#capabilities">Capabilities</a>
+                </li>
+                <li class="nav-item mx-1">
+                    <a class="nav-link nav-link-custom" href="#workflow">Workflow</a>
+                </li>
+                <li class="nav-item mx-1">
+                    <a class="nav-link nav-link-custom" href="#architecture">Architecture</a>
+                </li>
+                <li class="nav-item mx-1">
+                    <a class="nav-link nav-link-custom" href="#modules">Modules</a>
+                </li>
+                <li class="nav-item ms-lg-3 mt-2 mt-lg-0">
+                    <a href="login.html" class="btn-cyber">Open Dashboard</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main>
+
+    <!-- HERO -->
+    <section id="hero" class="hero">
+        <div class="flex-grow-1" data-aos="fade-right">
+            <div class="pill-tag">
+                <span class="pill-dot"></span>
+                <span>Next-Gen SOC / SIEM Prototype</span>
+            </div>
+
+            <div class="hero-project-name mt-3">SentinelAI</div>
+            <h1 class="hero-title">AI-Driven Threat Detection & Incident Response Platform</h1>
+
+            <p class="hero-sub">
+                SentinelAI is your always-on security sentinel — ingesting logs, detecting anomalies,
+                mapping threats to MITRE ATT&CK, generating risk scores, and guiding incident response
+                for modern applications and infrastructure.
+            </p>
+
+            <p class="hero-tagline">
+                <strong>Project name & meaning:</strong> A <em>sentinel</em> is a guard that constantly watches,
+                detects danger, and protects what matters.<br>
+                <span style="color:var(--primary); font-weight:600;">“Always watching. Always protecting.”</span>
+            </p>
+
+            <div class="hero-badges">
+                <span class="hero-badge"><i class="fas fa-brain me-1"></i> GenAI-powered log analysis</span>
+                <span class="hero-badge"><i class="fas fa-shield-halved me-1"></i> Severity & risk scoring</span>
+                <span class="hero-badge"><i class="fas fa-bolt me-1"></i> Auto incident + alert creation</span>
+                <span class="hero-badge"><i class="fas fa-users-gear me-1"></i> Role-based ADMIN / ANALYST</span>
+            </div>
+
+            <div class="hero-actions">
+                <a href="login.html" class="btn-cyber">
+                    <i class="fas fa-chart-line me-1"></i> Go to SOC Dashboard
+                </a>
+                <button class="btn btn-outline-cyber" onclick="document.getElementById('capabilities').scrollIntoView({behavior:'smooth'})">
+                    View platform capabilities
+                </button>
             </div>
         </div>
 
-        <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
-            <div class="feature-card text-center">
-                <i class="fas fa-shield-virus fa-3x mb-3" style="color:#00ffc3;"></i>
-                <h4>Real-Time Monitoring</h4>
-                <p>Centralized SOC dashboard with live threat scoring and severity-based alerts.</p>
+        <!-- Right hero visual -->
+        <div class="hero-right" data-aos="fade-left">
+            <div class="floating-chip">
+                <i class="fas fa-lock me-1"></i> Real-time AI enrichment
+            </div>
+            <div class="glass-panel">
+                <div class="glass-header">
+                    <span><i class="fas fa-terminal me-1 text-success"></i> Live Log Snapshot</span>
+                    <div class="dot-group">
+                        <span style="background:#ff6b6b;"></span>
+                        <span style="background:#feca57;"></span>
+                        <span style="background:#1dd1a1;"></span>
+                    </div>
+                </div>
+
+                <div class="terminal">
+                    <div class="term-line-muted">[2025-11-24 13:42:18] Ingested new event from <span class="term-label">auth-service</span></div>
+                    <div class="term-line-muted">[2025-11-24 13:42:18] Pattern detected: <span class="term-label">Multiple 401 on /login</span></div>
+                    <div><span class="term-label">AI.severity</span> → <span class="pill-sev-high">HIGH</span></div>
+                    <div><span class="term-label">AI.category</span> → Brute-force authentication attempt</div>
+                    <div><span class="term-label">MITRE.technique</span> → T1110 (Credential Brute Forcing)</div>
+                    <div><span class="term-label">Threat score</span> → 82 / 100</div>
+                    <div class="term-line-muted mt-1">→ Incident created • Alert mailed to Admin • Auto-action: BLOCK_IP suggested</div>
+                </div>
+
+                <div class="metric-row">
+                    <div class="metric-card">
+                        <div class="metric-label">Active Incidents</div>
+                        <div class="metric-value">7 <span class="pill-sev-critical ms-1">2 Critical</span></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">Logs analyzed (today)</div>
+                        <div class="metric-value">12,394</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-label">AI Coverage</div>
+                        <div class="metric-value">100% <span style="font-size:.7rem; opacity:.75;">of ingested logs</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT / MEANING -->
+    <section id="about" data-aos="fade-up">
+        <div class="section-label">Project story</div>
+        <h2 class="section-title">What SentinelAI is solving</h2>
+        <p class="section-sub">
+            Modern teams drown in logs but still miss real attacks. SentinelAI turns raw application,
+            infrastructure, and security logs into analyst-ready intelligence using GenAI + Spring Boot,
+            so you stop guessing and start responding.
+        </p>
+
+        <div class="about-grid">
+            <div class="about-box" data-aos="fade-right">
+                <h5>“SentinelAI” — name, meaning & perception</h5>
+                <p style="font-size:.9rem; opacity:.92;">
+                    A <strong>sentinel</strong> is a guard that watches over, detects danger, and protects assets.
+                    The name is intentionally picked to sound <strong>enterprise-grade</strong>, trust-worthy,
+                    and SOC-ready.
+                </p>
+                <ul class="about-list">
+                    <li><strong>Identity:</strong> Strong security + continuous monitoring.</li>
+                    <li><strong>Perception:</strong> Feels like a serious SIEM/SOC assistant, not a toy project.</li>
+                    <li><strong>Fit:</strong> Perfect for GenAI-powered SOC / SIEM / incident-response narratives.</li>
+                    <li><strong>Vibe:</strong> <em>“Always watching. Always protecting.”</em></li>
+                </ul>
+
+                <div class="mt-2">
+                    <span class="about-pill"><i class="fas fa-eye me-1"></i> Continuous visibility</span>
+                    <span class="about-pill"><i class="fas fa-shield-alt me-1"></i> Defensive posture</span>
+                    <span class="about-pill"><i class="fas fa-microchip me-1"></i> AI-first design</span>
+                </div>
+            </div>
+
+            <div class="about-box" data-aos="fade-left">
+                <h5>Platform in one line</h5>
+                <p style="font-size:.9rem; opacity:.93;">
+                    <strong>“A GenAI-driven SOC prototype that ingests logs, classifies threats, creates incidents,
+                        triggers alerts, and guides remediation — built with Spring Boot, security patterns,
+                        and a cyber-grade UI.”</strong>
+                </p>
+                <p style="font-size:.88rem; opacity:.93;">
+                    Under the hood, every log goes through:
+                </p>
+                <ul class="about-list">
+                    <li>AI enrichment → severity, category, MITRE mapping, recommendation.</li>
+                    <li>Threat score → 0–100 risk index for prioritization.</li>
+                    <li>Incident creation → long-form context + attached log reference.</li>
+                    <li>Alerting → email notifications for HIGH / CRITICAL events.</li>
+                    <li>Hooks for auto-remediation → e.g., <em>BLOCK_IP</em>, <em>ISOLATE_HOST</em>.</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- CAPABILITIES -->
+    <section id="capabilities" data-aos="fade-up">
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-2">
+            <div>
+                <div class="section-label">Platform capabilities</div>
+                <h2 class="section-title">What SentinelAI can do right now</h2>
+                <p class="section-sub">
+                    This is not a static portfolio UI — it’s a working end-to-end flow: logs → AI analysis →
+                    incidents → alerts → SOC view with role-based access.
+                </p>
             </div>
         </div>
 
-        <div class="col-md-4" data-aos="fade-up" data-aos-delay="350">
-            <div class="feature-card text-center">
-                <i class="fas fa-sitemap fa-3x mb-3" style="color:#00ffc3;"></i>
-                <h4>Auto Remediation</h4>
-                <p>AI suggests actions: block IP, isolate host, terminate session, notify security team.</p>
+        <div class="row g-4 mt-3">
+            <div class="col-md-4" data-aos="fade-up">
+                <div class="cap-card">
+                    <div class="cap-icon">
+                        <i class="fas fa-stream"></i>
+                    </div>
+                    <div class="cap-title">Centralised Log Ingestion</div>
+                    <p class="cap-text">
+                        Paste console errors, upload log files, or stream application / infra events.
+                        Everything is stored as normalized <code>LogEntry</code> records with source,
+                        title, category, timestamp and AI-enriched fields.
+                    </p>
+                    <div class="cap-tag">Modules: Log Stream • File Upload • Paste-to-Analyze</div>
+                </div>
+            </div>
+
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="120">
+                <div class="cap-card">
+                    <div class="cap-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="cap-title">AI Threat Classification</div>
+                    <p class="cap-text">
+                        Each log is sent to the AI service which predicts severity (LOW → CRITICAL),
+                        category, MITRE technique, recommendation and a 0-100 threat score that drives
+                        prioritisation in the dashboard.
+                    </p>
+                    <div class="cap-tag">AI Service: severity • category • threat_score • auto_action</div>
+                </div>
+            </div>
+
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="220">
+                <div class="cap-card">
+                    <div class="cap-icon">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="cap-title">Incident & Alert Pipeline</div>
+                    <p class="cap-text">
+                        For each high-risk event, SentinelAI generates an <code>Incident</code> with rich
+                        details and automatically triggers alert emails for HIGH/CRITICAL severity,
+                        ready for SOC analysts and security leads.
+                    </p>
+                    <div class="cap-tag">Entities: Incident • Alert • Email Notifications</div>
+                </div>
+            </div>
+
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="80">
+                <div class="cap-card">
+                    <div class="cap-icon">
+                        <i class="fas fa-user-lock"></i>
+                    </div>
+                    <div class="cap-title">Role-Based SOC Views</div>
+                    <p class="cap-text">
+                        Spring Security + JWT ensure only authenticated users can access the SOC.
+                        ADMIN vs ANALYST roles control access to exports, user management and other
+                        sensitive operations.
+                    </p>
+                    <div class="cap-tag">Security: JWT • RBAC • Method-level access</div>
+                </div>
+            </div>
+
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="180">
+                <div class="cap-card">
+                    <div class="cap-icon">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <div class="cap-title">Analyst-Friendly UI</div>
+                    <p class="cap-text">
+                        A cyber-themed dashboard built with HTML, CSS, Bootstrap 5, AOS and custom JS:
+                        log tables, severity chips, AI explanation modals and an AI “side-chat”
+                        assistant wired into the backend.
+                    </p>
+                    <div class="cap-tag">Frontend: Logs • Incidents • Alerts • IP Lookup</div>
+                </div>
+            </div>
+
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="260">
+                <div class="cap-card">
+                    <div class="cap-icon">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <div class="cap-title">Hooks for Auto-Remediation</div>
+                    <p class="cap-text">
+                        Based on AI’s <code>auto_action</code>, SentinelAI can suggest operations like
+                        BLOCK_IP or ISOLATE_HOST. The current implementation logs these actions and
+                        is designed to integrate with firewalls / EDR / SOAR later.
+                    </p>
+                    <div class="cap-tag">Future-ready: firewall / EDR / SOAR integration</div>
+                </div>
             </div>
         </div>
+    </section>
 
+    <!-- WORKFLOW / HOW IT WORKS -->
+    <section id="workflow" class="workflow" data-aos="fade-up">
+        <div class="section-label">Flow</div>
+        <h2 class="section-title">How SentinelAI thinks like a SOC analyst</h2>
+        <p class="section-sub">
+            Under the hood, the project follows a clear threat-intelligence pipeline
+            — exactly what hiring managers expect from a real SOC or SIEM product.
+        </p>
+
+        <div class="timeline">
+            <div class="timeline-line"></div>
+
+            <div class="timeline-step" data-aos="fade-right">
+                <div class="timeline-dot"></div>
+                <h6>1. Ingest logs & errors</h6>
+                <p>Apps, services, dev tools or security appliances send logs to <code>/api/logs</code> or
+                    through the UI (paste / upload). Each entry is normalized into a <code>LogEntry</code>
+                    with source, title, raw text and metadata.</p>
+            </div>
+
+            <div class="timeline-step" data-aos="fade-right" data-aos-delay="80">
+                <div class="timeline-dot"></div>
+                <h6>2. AI enrichment</h6>
+                <p><code>LogService</code> calls <code>AIService</code>, which runs the log through a GenAI model.
+                    It returns severity, category, threat score, MITRE technique and recommendation.
+                    Validation ensures safe default values when AI is unavailable.</p>
+            </div>
+
+            <div class="timeline-step" data-aos="fade-right" data-aos-delay="160">
+                <div class="timeline-dot"></div>
+                <h6>3. Incident creation & correlation</h6>
+                <p>Using AI output, the platform creates an <code>Incident</code> object that stitches together
+                    summary, techniques, recommendations and the related log. This becomes the core unit
+                    for SOC investigation.</p>
+            </div>
+
+            <div class="timeline-step" data-aos="fade-right" data-aos-delay="240">
+                <div class="timeline-dot"></div>
+                <h6>4. Alerts & auto-action suggestions</h6>
+                <p>When severity is HIGH / CRITICAL, <code>AlertService</code> triggers an email notification to
+                    admins and logs any suggested auto-actions (BLOCK_IP / ISOLATE_HOST) for integration
+                    into real security systems.</p>
+            </div>
+
+            <div class="timeline-step" data-aos="fade-right" data-aos-delay="320">
+                <div class="timeline-dot"></div>
+                <h6>5. Analyst UI + AI side-chat</h6>
+                <p>The dashboard shows enriched logs with severity chips, AI explanations and
+                    an AI "side-chat" to ask follow-up questions like “Explain this error in simple
+                    language” or “How do I fix this in Spring Boot?”.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ARCHITECTURE / TECH STACK -->
+    <section id="architecture" data-aos="fade-up">
+        <div class="section-label">Architecture & stack</div>
+        <h2 class="section-title">Built like a production-grade backend</h2>
+        <p class="section-sub">
+            SentinelAI is structured for real-world maintainability: layered architecture,
+            security best practices, and clear separation between ingestion, AI analysis
+            and alerting responsibilities.
+        </p>
+
+        <div class="row g-4 mt-3">
+            <div class="col-md-6" data-aos="fade-right">
+                <div class="arch-card">
+                    <h6 class="mb-2"><i class="fas fa-diagram-project me-2 text-success"></i> Architecture Highlights</h6>
+                    <ul class="about-list">
+                        <li><strong>Spring Boot REST APIs</strong> for logs, incidents, alerts & users.</li>
+                        <li><strong>Service layer orchestration</strong> in <code>LogService</code> + <code>AIService</code>.</li>
+                        <li><strong>JPA entities</strong>: <code>LogEntry</code>, <code>Incident</code>, <code>Alert</code>, <code>User</code>.</li>
+                        <li><strong>Spring Security + JWT</strong> for authenticated, role-based access.</li>
+                        <li><strong>Email notifications</strong> wired through <code>AlertService</code>.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col-md-6" data-aos="fade-left">
+                <div class="arch-card">
+                    <h6 class="mb-2"><i class="fas fa-microchip me-2 text-success"></i> Tech Stack</h6>
+                    <div class="tech-badges">
+                        <span><i class="fab fa-java"></i> Java 21 • Spring Boot</span>
+                        <span><i class="fas fa-database"></i> Spring Data JPA • MySQL</span>
+                        <span><i class="fas fa-key"></i> Spring Security • JWT</span>
+                        <span><i class="fas fa-envelope"></i> Email Alerts (JavaMailSender)</span>
+                        <span><i class="fas fa-code"></i> HTML • CSS • JS • Bootstrap 5</span>
+                        <span><i class="fas fa-magic"></i> AOS Animations • GSAP intro</span>
+                    </div>
+                    <p class="mt-3" style="font-size:.86rem; opacity:.9;">
+                        This makes SentinelAI a strong portfolio project for roles in
+                        <strong>Java / Spring Boot backend</strong>, <strong>security engineering</strong>,
+                        and <strong>AI-assisted platforms</strong>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MODULES / LINKS -->
+    <section id="modules" class="modules" data-aos="fade-up">
+        <div class="section-label">Screens & modules</div>
+        <h2 class="section-title">What’s inside the SentinelAI dashboard?</h2>
+        <p class="section-sub">
+            Each screen is purpose-built to match how SOC teams actually work — from
+            raw log triage to incident review and alert follow-up.
+        </p>
+
+        <div class="row g-3 mt-3">
+            <div class="col-md-4" data-aos="fade-up">
+                <div class="module-card">
+                    <strong><i class="fas fa-file-alt me-2 text-success"></i>Log Stream</strong>
+                    <p>Central place to see all ingested logs, their AI-computed severity, category
+                        and quick actions like explain, delete and export.</p>
+                    <a href="logs.html">Open logs view →</a>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="80">
+                <div class="module-card">
+                    <strong><i class="fas fa-user-shield me-2 text-success"></i>Incidents</strong>
+                    <p>AI-generated incidents with detailed summaries, MITRE mapping and recommendations
+                        for investigation and response.</p>
+                    <a href="incidents.html">Open incidents →</a>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="160">
+                <div class="module-card">
+                    <strong><i class="fas fa-bell me-2 text-success"></i>Alerts</strong>
+                    <p>High / Critical events raised as alerts and tied back to incidents & logs, helping
+                        SOC leads keep track of what really matters.</p>
+                    <a href="alerts.html">Open alerts →</a>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="module-card">
+                    <strong><i class="fas fa-globe me-2 text-success"></i>IP Intelligence</strong>
+                    <p>IP lookup screen (planned / WIP) for quickly pivoting from suspicious events to
+                        source information and enrichment.</p>
+                    <a href="ip-lookup.html">Open IP lookup →</a>
+                </div>
+            </div>
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="260">
+                <div class="module-card">
+                    <strong><i class="fas fa-users-gear me-2 text-success"></i>User Management</strong>
+                    <p>Admin-only module to manage SOC users, roles and access boundaries
+                        (ADMIN vs ANALYST).</p>
+                    <a href="admin-users.html">Open user management →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA / FINAL -->
+    <section class="cta-section" data-aos="zoom-in">
+        <div class="cta-badge">
+            <i class="fas fa-rocket"></i> SentinelAI is ready for demo
+        </div>
+        <h3 class="cta-title">Perfect for GenAI + Cybersecurity interview conversations</h3>
+        <p class="cta-sub">
+            Use SentinelAI to showcase not just a CRUD app, but a real security pipeline:
+            AI-driven analysis, incident modeling, alerts, RBAC and a SOC-grade UI —
+            all built end-to-end in Java & Spring Boot.
+        </p>
+        <div class="hero-actions justify-content-center">
+            <a href="login.html" class="btn-cyber">
+                <i class="fas fa-right-to-bracket me-1"></i> Login & explore the SOC
+            </a>
+        </div>
+    </section>
+
+    <div class="footer">
+        © 2025 SentinelAI — AI Threat Detection & Incident Response Platform. Built with Spring Boot & GenAI.
     </div>
-</div>
 
-<!-- EXPLAINER -->
-<div class="explain-section" data-aos="fade-up">
-    <h2 class="explain-title">Why This Platform Is Unique</h2>
-    <div class="explain-line"></div>
-
-    <div class="explain-box" data-aos="fade-right">
-        <strong>1. MITRE ATT&CK Alignment</strong><br>
-        Every log is mapped to known adversary techniques for better SOC intelligence.
-    </div>
-
-    <div class="explain-box" data-aos="fade-right" data-aos-delay="100">
-        <strong>2. AI-Generated Threat Score</strong><br>
-        A 0–100 dynamic risk score to instantly decide priority.
-    </div>
-
-    <div class="explain-box" data-aos="fade-right" data-aos-delay="200">
-        <strong>3. Real-Time Email Alerts</strong><br>
-        High/Critical severity alerts are auto-notified to Admin instantly.
-    </div>
-
-    <div class="explain-box" data-aos="fade-right" data-aos-delay="300">
-        <strong>4. Automated Response Suggestions</strong><br>
-        Gemini recommends immediate remediation actions just like SOAR platforms.
-    </div>
-
-    <div class="explain-box" data-aos="fade-right" data-aos-delay="400">
-        <strong>5. Enterprise UI + Bootstrap 5</strong><br>
-        Fully responsive cyber-themed UI that matches top industry SOC tools.
-    </div>
-
-    <div class="explain-box" data-aos="fade-right" data-aos-delay="500">
-        <strong>6. Role-Based Access Control</strong><br>
-        ADMIN and ANALYST get separate capabilities for secure operations.
-    </div>
-
-    <div class="explain-box" data-aos="fade-right" data-aos-delay="600">
-        <strong>7. Multi-Module Threat Ecosystem</strong><br>
-        Logs • Incidents • Alerts • IP Lookup • User Management • PDF Exports.
-    </div>
-
-</div>
-
-<!-- FOOTER -->
-<div class="footer">
-    © 2025 AI Threat Detection & IR Platform — All Rights Reserved
-</div>
+</main>
 
 <!-- SCRIPTS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<!-- GSAP (simple hero intro) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.4/gsap.min.js"></script>
 
 <script>
-    AOS.init({ duration: 800 });
+    AOS.init({ duration: 800, once: true });
+
+    // Simple GSAP hero entrance
+    window.addEventListener("load", function () {
+        gsap.from("#hero .pill-tag", {y: -20, opacity: 0, duration: 0.6});
+        gsap.from("#hero .hero-project-name", {x: -20, opacity: 0, duration: 0.6, delay: 0.1});
+        gsap.from("#hero .hero-title", {x: -30, opacity: 0, duration: 0.7, delay: 0.2});
+        gsap.from("#hero .hero-sub", {y: 10, opacity: 0, duration: 0.7, delay: 0.35});
+        gsap.from("#hero .hero-badges .hero-badge", {
+            opacity: 0,
+            y: 10,
+            stagger: 0.05,
+            delay: 0.45,
+            duration: 0.5
+        });
+        gsap.from("#hero .hero-actions .btn-cyber", {scale: 0.9, opacity: 0, duration: 0.5, delay: 0.55});
+        gsap.from(".hero-right .glass-panel", {y: 30, opacity: 0, duration: 0.8, delay: 0.4});
+    });
 </script>
 
 </body>
