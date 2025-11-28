@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Logs — SentinelAI SOC Platform</title>
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-main: #050814;
+      --bg-elevated: #0f1729;
+      --bg-elevated-soft: rgba(15, 23, 41, 0.85);
+      --border-soft: rgba(148, 163, 255, 0.35);
+      --accent-blue: #4c5eff;
+      --accent-green: #00ffb0;
+      --text-muted: #9ca3af;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 0 0, rgba(76, 94, 255, 0.3), transparent 55%),
+                  radial-gradient(circle at 100% 100%, rgba(0, 255, 176, 0.25), transparent 55%),
+                  linear-gradient(135deg, var(--bg-main), #020617, #020617);
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #e5e7eb;
+      overflow-x: hidden;
+    }
+
+    /* subtle cyber grid */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, rgba(148, 163, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(148, 163, 255, 0.04) 1px, transparent 1px);
+      background-size: 52px 52px;
+      opacity: 0.9;
+      mix-blend-mode: soft-light;
+      pointer-events: none;
+      z-index: -1;
+      animation: gridDrift 18s linear infinite;
+    }
+
+    @keyframes gridDrift {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-40px); }
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 260px;
+      height: 100vh;
+      position: fixed;
+      inset-block: 0;
+      left: 0;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.9));
+      border-right: 1px solid rgba(148, 163, 255, 0.35);
+      box-shadow: 18px 0 45px rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(18px);
+      padding: 28px 22px 18px;
+      display: flex;
+      flex-direction: column;
+      z-index: 900;
+    }
+
+    .sidebar h3 {
+      font-size: 1.1rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar h3 span.logo-mark {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      background: conic-gradient(from 140deg, var(--accent-blue), var(--accent-green), var(--accent-blue));
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      color: #020617;
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.4);
+    }
+
+    .sidebar h3 span.logo-text {
+      background: linear-gradient(135deg, #e5e7ff, #a5b4fc);
+      -webkit-background-clip: text;
+      color: transparent;
+      font-weight: 700;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      margin-top: 10px;
+    }
+
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      margin: 4px 0;
+      color: #d1d5db;
+      font-size: 0.9rem;
+      text-decoration: none;
+      border-radius: 10px;
+      transition: 0.25s ease;
+      position: relative;
+    }
+
+    .sidebar a i {
+      width: 18px;
+      text-align: center;
+      font-size: 0.95rem;
+      color: #9ca3ff;
+    }
+
+    .sidebar a.active,
+    .sidebar a:hover {
+      color: #f9fafb;
+      background: radial-gradient(circle at 0 0, rgba(76, 94, 255, 0.38), transparent 70%);
+      box-shadow: 0 0 18px rgba(15, 23, 42, 0.95);
+    }
+
+    .sidebar a.active::before,
+    .sidebar a:hover::before {
+      content: "";
+      position: absolute;
+      left: -10px;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--accent-green), var(--accent-blue));
+    }
+
+    .sidebar .logout-link {
+      margin-top: auto;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 113, 113, 0.35);
+      color: #fecaca;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .sidebar .logout-link:hover {
+      background: radial-gradient(circle at 0 0, rgba(248, 113, 113, 0.35), transparent 65%);
+      color: #fee2e2;
+    }
+
+    /* MAIN */
+    .main {
+      margin-left: 270px;
+      padding: 26px 32px 40px;
+      min-height: 100vh;
+    }
+
+    .page-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .page-title {
+      font-size: 1.85rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      color: #e5e7ff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .page-title span.tag {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.35), transparent 70%);
+      border: 1px solid rgba(148, 163, 255, 0.6);
+      color: #c7d2fe;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      max-width: 540px;
+    }
+
+    .loader-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .loader {
+      border: 3px solid rgba(148, 163, 255, 0.16);
+      border-top: 3px solid var(--accent-green);
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ACTION BAR */
+    .action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .btn-cyber {
+      background: linear-gradient(135deg, var(--accent-green), #22c55e);
+      border: none;
+      color: #022c22;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 9px 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      box-shadow: 0 0 0 rgba(34, 197, 94, 0.35);
+      transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+    }
+
+    .btn-cyber i {
+      font-size: 0.9rem;
+    }
+
+    .btn-cyber:hover {
+      transform: translateY(-1px) scale(1.02);
+      box-shadow: 0 12px 30px rgba(45, 212, 191, 0.35);
+      filter: brightness(1.05);
+    }
+
+    .btn-lite {
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 255, 0.5);
+      background: rgba(15, 23, 42, 0.7);
+      color: #e5e7eb;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: 0.22s ease;
+    }
+
+    .btn-lite:hover {
+      background: radial-gradient(circle at 0 0, rgba(76, 94, 255, 0.2), transparent 70%);
+      color: #f9fafb;
+    }
+
+    .search-input {
+      max-width: 260px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 255, 0.6);
+      color: #e5e7eb;
+      font-size: 0.82rem;
+      border-radius: 999px;
+      padding-inline: 14px;
+      margin-left: auto;
+    }
+
+    .search-input::placeholder {
+      color: rgba(148, 163, 255, 0.7);
+    }
+
+    .search-input:focus {
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.7);
+      border-color: rgba(56, 189, 248, 0.8);
+      outline: none;
+    }
+
+    /* UTILITY CARDS (paste / upload) */
+    .surface-card {
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.12), transparent 70%),
+                  radial-gradient(circle at 100% 0, rgba(34, 197, 94, 0.08), transparent 70%),
+                  var(--bg-elevated-soft);
+      border-radius: 18px;
+      border: 1px solid var(--border-soft);
+      padding: 20px 20px 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.85);
+    }
+
+    .surface-card h4 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #e5e7ff;
+    }
+
+    .surface-card h4 i {
+      color: var(--accent-green);
+    }
+
+    .surface-card small {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .surface-card .form-control {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 255, 0.6);
+      color: #e5e7eb;
+      font-size: 0.85rem;
+    }
+
+    .surface-card .form-control::placeholder {
+      color: rgba(148, 163, 255, 0.7);
+    }
+
+    .surface-card .form-control:focus {
+      border-color: rgba(56, 189, 248, 0.9);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.6);
+    }
+
+    .drop-zone {
+      border: 1px dashed rgba(148, 163, 255, 0.7);
+      padding: 28px;
+      border-radius: 16px;
+      text-align: center;
+      cursor: pointer;
+      background: radial-gradient(circle at 50% 0, rgba(56, 189, 248, 0.12), transparent 72%);
+      transition: 0.25s ease;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.drag-hover {
+      border-style: solid;
+      border-color: rgba(56, 189, 248, 0.9);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5);
+      background: radial-gradient(circle at 50% 0, rgba(34, 197, 94, 0.17), transparent 75%);
+    }
+
+    .drop-icon {
+      font-size: 2rem;
+      color: var(--accent-green);
+      margin-bottom: 6px;
+    }
+
+    .drop-zone p {
+      margin: 0;
+      font-size: 0.85rem;
+    }
+
+    .drop-zone span {
+      font-size: 0.76rem;
+      color: #6ee7b7;
+    }
+
+    /* LOGS WRAPPER */
+    .logs-wrapper {
+      margin-top: 10px;
+    }
+
+    .logs-header-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .logs-header-line strong {
+      color: #e5e7ff;
+    }
+
+    /* LOG CARD GRID */
+    #logsGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+
+    .log-card {
+      position: relative;
+      background: radial-gradient(circle at 0 0, rgba(76, 94, 255, 0.28), transparent 70%),
+                  radial-gradient(circle at 100% 100%, rgba(34, 197, 94, 0.2), transparent 70%),
+                  rgba(15, 23, 42, 0.9);
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 255, 0.45);
+      padding: 12px 14px 12px;
+      cursor: default;
+      transition: 0.24s ease;
+      box-shadow: 0 16px 26px rgba(15, 23, 42, 0.9);
+    }
+
+    .log-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 22px 38px rgba(15, 23, 42, 0.95);
+      border-color: rgba(56, 189, 248, 0.8);
+    }
+
+    .log-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      margin-bottom: 6px;
+    }
+
+    .log-severity-pill {
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .sev-low    { background: rgba(22, 163, 74, 0.16);  color: #6ee7b7; border: 1px solid rgba(34,197,94,0.7); }
+    .sev-medium { background: rgba(234, 179, 8, 0.12);  color: #fde68a; border: 1px solid rgba(250,204,21,0.7); }
+    .sev-high   { background: rgba(249, 115, 22, 0.14); color: #fed7aa; border: 1px solid rgba(249,115,22,0.7); }
+    .sev-critical{background: rgba(239, 68, 68, 0.16);  color: #fecaca; border: 1px solid rgba(239,68,68,0.8); }
+
+    .log-time {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .log-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #e5e7ff;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .log-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .meta-pill {
+      font-size: 0.7rem;
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 255, 0.7);
+      background: rgba(15, 23, 42, 0.9);
+      color: #c7d2fe;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .meta-pill i {
+      font-size: 0.7rem;
+      color: rgba(129, 140, 248, 0.9);
+    }
+
+    .log-snippet {
+      font-size: 0.8rem;
+      color: #cbd5f5;
+      max-height: 38px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .log-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .log-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 255, 0.65);
+      background: rgba(15, 23, 42, 0.9);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.78rem;
+      color: #c7d2fe;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .icon-btn.ai {
+      border-color: rgba(34, 197, 94, 0.8);
+      color: #6ee7b7;
+    }
+
+    .icon-btn.delete {
+      border-color: rgba(248, 113, 113, 0.85);
+      color: #fecaca;
+    }
+
+    .icon-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 12px rgba(15, 23, 42, 0.85);
+    }
+
+    .icon-btn.ai:hover {
+      background: radial-gradient(circle at 50% 0, rgba(34, 197, 94, 0.3), transparent 70%);
+    }
+
+    .icon-btn.delete:hover {
+      background: radial-gradient(circle at 50% 0, rgba(248, 113, 113, 0.35), transparent 70%);
+    }
+
+    .logs-empty {
+      border-radius: 14px;
+      border: 1px dashed rgba(148, 163, 255, 0.6);
+      padding: 18px;
+      font-size: 0.85rem;
+      text-align: center;
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    /* AI MODAL */
+    .modal-content.ai-modal {
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.16), transparent 70%),
+                  radial-gradient(circle at 100% 100%, rgba(34, 197, 94, 0.14), transparent 70%),
+                  #020617;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 255, 0.7);
+      color: #e5e7eb;
+    }
+
+    .modal-content.ai-modal .modal-title i {
+      color: var(--accent-green);
+    }
+
+    #aiExplainBody {
+      white-space: pre-wrap;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.82rem;
+      color: #e5e7eb;
+    }
+
+    /* AI CHAT PANEL */
+    #aiChatPanel {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 420px;
+      height: 100%;
+      background: radial-gradient(circle at 0 0, rgba(56, 189, 248, 0.18), transparent 70%),
+                  radial-gradient(circle at 100% 100%, rgba(34, 197, 94, 0.12), transparent 70%),
+                  #020617;
+      border-left: 1px solid rgba(148, 163, 255, 0.7);
+      box-shadow: -22px 0 45px rgba(15, 23, 42, 0.95);
+      transition: right 0.4s ease;
+      z-index: 9999;
+      padding: 18px 18px 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #aiChatPanel h5 {
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #e5e7ff;
+      margin-bottom: 4px;
+    }
+
+    #aiChatPanel h5 i {
+      color: var(--accent-green);
+    }
+
+    #aiLogTitle {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    #aiChatOutput {
+      flex: 1;
+      margin-top: 12px;
+      padding-right: 6px;
+      font-size: 0.8rem;
+      overflow-y: auto;
+      color: #e5e7eb;
+      white-space: pre-wrap;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 255, 0.7);
+      padding: 10px;
+    }
+
+    #aiChatInput {
+      margin-top: 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 255, 0.7);
+      color: #e5e7eb;
+      font-size: 0.82rem;
+    }
+
+    #aiChatInput::placeholder {
+      color: rgba(148, 163, 255, 0.7);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 992px) {
+      .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        align-items: center;
+        padding: 14px 16px;
+        overflow-x: auto;
+      }
+      .sidebar h3 {
+        margin-bottom: 0;
+        margin-right: 14px;
+      }
+      .sidebar-nav {
+        display: flex;
+        flex: 1;
+        margin-top: 0;
+        gap: 6px;
+      }
+      .sidebar a {
+        padding: 7px 10px;
+        font-size: 0.78rem;
+      }
+      .sidebar .logout-link {
+        margin-top: 0;
+        margin-left: 6px;
+      }
+      .main {
+        margin-left: 0;
+        padding: 18px 14px 28px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      #aiChatPanel {
+        width: 100%;
+      }
+      .page-title {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <h3>
+    <span class="logo-mark">SA</span>
+    <span class="logo-text">SentinelAI SOC</span>
+  </h3>
+
+  <div class="sidebar-nav">
+    <a href="index.html"><i class="fas fa-house"></i><span>Overview</span></a>
+    <a href="dashboard.html"><i class="fas fa-chart-line"></i><span>Dashboard</span></a>
+    <a href="logs.html" class="active"><i class="fas fa-file-alt"></i><span>Logs</span></a>
+    <a href="incidents.html"><i class="fas fa-user-shield"></i><span>Incidents</span></a>
+    <a href="alerts.html"><i class="fas fa-bell"></i><span>Alerts</span></a>
+    <a href="ip-lookup.html"><i class="fas fa-globe"></i><span>IP Lookup</span></a>
+    <a href="admin-users.html" class="admin-only"><i class="fas fa-users"></i><span>User Management</span></a>
+  </div>
+
+  <a href="#" class="logout-link" onclick="logout()">
+    <i class="fas fa-sign-out-alt"></i> Logout
+  </a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">
+        Log Stream
+        <span class="tag">Real-time AI Enriched</span>
+      </h2>
+      <div class="subtitle">
+        Centralized ingestion of application, firewall, authentication and infrastructure logs —
+        auto-analyzed by SentinelAI for severity, category and remediation hints.
+      </div>
+    </div>
+    <div class="loader-wrapper d-none d-md-flex">
+      <div class="loader" id="globalLoader" style="display:none;"></div>
+      <span id="loaderText"></span>
+    </div>
+  </div>
+
+  <!-- Action Bar -->
+  <div class="action-bar">
+    <button class="btn-cyber" id="btnInject">
+      <i class="fas fa-flask"></i> Inject Sample Threat Logs
+    </button>
+
+    <button class="btn-lite" id="btnRefresh">
+      <i class="fas fa-rotate"></i> Refresh
+    </button>
+
+    <button class="btn-lite admin-only" id="btnExportJson">
+      <i class="fas fa-file-code"></i> Export JSON
+    </button>
+
+    <button class="btn-lite admin-only" id="btnExportCsv">
+      <i class="fas fa-file-csv"></i> Export CSV
+    </button>
+
+    <input type="text" id="searchBox" class="form-control search-input"
+           placeholder="Filter by text, source, severity, category...">
+  </div>
+
+  <!-- PASTE LOG CARD -->
+  <div class="surface-card">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <div>
+        <h4><i class="fas fa-brain"></i> Paste Error / Console Log</h4>
+        <small>Drop in any stack trace, console error or backend log line — SentinelAI will analyze and classify it.</small>
+      </div>
+    </div>
+
+    <input type="text" id="pasteTitle" class="form-control mb-2"
+           placeholder="Short Title (e.g., React 500 Error on /login)">
+    <input type="text" id="pasteSource" class="form-control mb-2"
+           placeholder="Source (Browser, VS Code, Gateway, Auth Service...)">
+    <input type="text" id="pasteCategory" class="form-control mb-2"
+           placeholder="Category (Frontend Error, API Failure, Auth Attack, DB Anomaly...)">
+
+    <textarea id="pasteArea" rows="4" class="form-control mb-3"
+              placeholder="Paste browser console logs, VS Code errors, Java/Python stack trace, Nginx logs..."></textarea>
+
+    <button class="btn-cyber w-100" onclick="analyzePastedLog()">
+      <i class="fas fa-magnifying-glass-chart"></i> Analyze Pasted Error with AI
+    </button>
+  </div>
+
+  <!-- DRAG & DROP LOG FILE CARD -->
+  <div class="surface-card">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <div>
+        <h4><i class="fas fa-cloud-upload-alt"></i> Drag & Drop Log File</h4>
+        <small>Upload .log / .txt / .json exports from your services and let SentinelAI auto-score & summarize.</small>
+      </div>
+    </div>
+
+    <div class="row g-2">
+      <div class="col-md-4">
+        <input type="text" id="logTitle" class="form-control mb-2"
+               placeholder="Short Title (e.g., Java NullPointer in AuthController)">
+      </div>
+      <div class="col-md-4">
+        <input type="text" id="logSource" class="form-control mb-2"
+               placeholder="Source (VS Code, Browser Console, Java App...)">
+      </div>
+      <div class="col-md-4">
+        <input type="text" id="logCategory" class="form-control mb-2"
+               placeholder="Category (Backend Error, Frontend Error, Build Failure...)">
+      </div>
+    </div>
+
+    <div id="dropZone" class="drop-zone mt-1" onclick="document.getElementById('dragFileInput').click()">
+      <i class="fas fa-cloud-arrow-up drop-icon"></i>
+      <p>Drag & Drop your log/error file here</p>
+      <span>Or click to browse (.txt, .log, .json, .csv, .xml, .yml, .yaml)</span>
+    </div>
+
+    <input type="file" id="dragFileInput"
+           accept=".txt,.log,.json,.csv,.xml,.yml,.yaml" hidden>
+
+    <button class="btn-cyber w-100 mt-3" onclick="uploadDraggedFile()">
+      <i class="fas fa-upload"></i> Analyze Uploaded File with AI
+    </button>
+  </div>
+
+  <!-- LOGS GRID -->
+  <div class="logs-wrapper">
+    <div class="logs-header-line">
+      <span>Showing <strong><span id="countLogs">0</span> logs</strong> analyzed by SentinelAI</span>
+      <span>Click the <i class="fas fa-brain"></i> icon for a summary, <i class="fas fa-robot"></i> for deep chat.</span>
+    </div>
+
+    <div id="logsGrid">
+      <!-- Log cards injected by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- 🧠 AI Explanation Modal -->
+<div class="modal fade" id="aiModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content ai-modal">
+      <div class="modal-header border-0">
+        <h5 class="modal-title">
+          <i class="fas fa-sparkles"></i> AI Root-Cause Summary
+        </h5>
+        <button type="button" class="btn-close btn-close-white"
+                data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body pt-0">
+        <pre id="aiExplainBody" class="mb-0"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI CHAT SIDE PANEL -->
+<div id="aiChatPanel">
+  <h5><i class="fas fa-robot"></i> AI Assistant</h5>
+  <small id="aiLogTitle"></small>
+
+  <div id="aiChatOutput"></div>
+
+  <textarea id="aiChatInput"
+            class="form-control"
+            rows="2"
+            placeholder="Ask something about this error, e.g. 'How do I fix this stack trace?'></textarea>
+
+  <button class="btn-cyber w-100 mt-2" onclick="sendAIChat()">
+    Ask AI
+  </button>
+
+  <button class="btn-lite w-100 mt-2" onclick="closeAIPanel()">
+    <i class="fas fa-times"></i> Close
+  </button>
+</div>
+
+
+
+</body>
+</html>

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Incidents — AI Threat Detection SOC Platform</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #020d0a, #031510, #06261c);
+            font-family: "Inter", sans-serif;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* CYBER GRID */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-size: 45px 45px;
+            background-image:
+            linear-gradient(to right, rgba(0,255,130,.08) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0,255,130,.08) 1px, transparent 1px);
+            animation: gridMove 22s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes gridMove {
+            from { transform: translateY(0); }
+            to   { transform: translateY(-60px); }
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            background: rgba(0,0,0,.48);
+            border-right: 1px solid rgba(0,255,120,.28);
+            backdrop-filter: blur(14px);
+            padding-top: 40px;
+        }
+        .sidebar h3 {
+            background: linear-gradient(135deg,#00ffc3,#00c27a);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .sidebar a {
+            display: block;
+            padding: 14px 22px;
+            margin: 10px 0;
+            color: #b7ffdd;
+            font-weight: 500;
+            text-decoration: none;
+            transition: 0.25s;
+            border-radius: 8px;
+        }
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: rgba(0,255,150,0.20);
+            color: #00ffb0;
+            box-shadow: 0 0 18px rgba(0,255,150,.25);
+        }
+
+        /* MAIN */
+        .main {
+            margin-left: 270px;
+            padding: 40px 40px 70px;
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00ffb0;
+        }
+
+        .page-sub {
+            opacity:.85;
+            margin-top: -5px;
+        }
+
+        /* TABLE CARD */
+        .table-card {
+            margin-top: 28px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 14px;
+            border: 1px solid rgba(0,255,120,.20);
+            padding: 18px 20px;
+            backdrop-filter: blur(12px);
+        }
+
+        .table thead {
+            background: linear-gradient(90deg,rgba(0,255,150,0.22),rgba(0,120,80,0.25));
+        }
+
+        .table thead th {
+            color: #d2ffe8;
+            text-transform: uppercase;
+            font-size: .8rem;
+            letter-spacing: .06rem;
+            border: none;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(0,255,150,0.07);
+            cursor: pointer;
+        }
+
+        .sev-badge {
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: .75rem;
+        }
+        .sev-low      { background: rgba(0,180,80,0.15);   color:#50ffab; }
+        .sev-medium   { background: rgba(255,200,60,0.18); color:#ffe98f; }
+        .sev-high     { background: rgba(255,120,60,0.20); color:#ffb088; }
+        .sev-critical { background: rgba(255,60,60,0.25);  color:#ff8f8f; }
+
+        .pill {
+            font-size: .75rem;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(255,255,255,.07);
+            border: 1px solid rgba(0,255,130,.28);
+        }
+
+        .search-input {
+            max-width: 260px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(0,255,140,0.25);
+            color: #fff;
+        }
+
+        /* EXPORT BUTTONS */
+        .btn-exp {
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: .8rem;
+            background: rgba(255,255,255,0.10);
+            border: 1px solid rgba(0,255,130,.30);
+            color: #9effd8;
+            transition: .3s;
+        }
+        .btn-exp:hover {
+            background: rgba(0,255,130,.22);
+            color: black;
+        }
+
+        /* ADMIN DELETE BTN */
+        .btn-del {
+            color: #ff8a8a;
+            text-decoration: none;
+            transition: .2s;
+        }
+        .btn-del:hover {
+            color: #ff4444;
+        }
+
+        @media(max-width:768px){
+            .sidebar {
+                width:100%;
+                height:auto;
+                position:static;
+                display: flex;
+                flex-wrap: wrap;
+                justify-content:center;
+            }
+            .main {
+                margin-left:0;
+                padding: 25px 18px 60px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h3 class="text-center mb-4">AI SOC</h3>
+
+    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="logs.html"><i class="fas fa-file-alt"></i> Logs</a>
+    <a href="incidents.html" class="active"><i class="fas fa-user-shield"></i> Incidents</a>
+    <a href="alerts.html"><i class="fas fa-bell"></i> Alerts</a>
+    <a href="ip-lookup.html"><i class="fas fa-globe"></i> IP Lookup</a>
+    <a href="admin-users.html" class="admin-only"><i class="fas fa-users"></i> User Management</a>
+
+    <a href="#" class="text-danger mt-2" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+    <h2 class="title">Incident Center</h2>
+    <p class="page-sub">AI-analyzed threats, MITRE techniques, severity scores & remediation steps.</p>
+
+    <div class="d-flex flex-wrap gap-3 align-items-center mt-4">
+        <input type="text" id="searchBox" class="form-control search-input" placeholder="Search...">
+
+        <button class="btn-exp" onclick="exportJSON()">
+            <i class="fas fa-download"></i> Export JSON
+        </button>
+
+        <button class="btn-exp" onclick="exportCSV()">
+            <i class="fas fa-file-csv"></i> Export CSV
+        </button>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-card mt-4">
+        <div class="d-flex justify-content-between pb-2">
+            <span class="small" style="opacity:.8;">Showing <span id="countIncidents">0</span> incidents</span>
+            <span class="small" style="opacity:.7;">Click any row to open details</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Timestamp</th>
+                        <th>Severity</th>
+                        <th>Category</th>
+                        <th>MITRE Technique</th>
+                        <th>Threat Score</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="incidentBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- SCRIPTS -->
+<script>
+    const API = "http://localhost:8080/api";
+const token = localStorage.getItem("jwt");
+
+if (!token) window.location.href = "login.html";
+
+function logout() {
+    localStorage.removeItem("jwt");
+    window.location.href = "login.html";
+}
+
+// Role-Based UI
+(function applyRole(){
+    try {
+        const p = JSON.parse(atob(token.split(".")[1]));
+        if (p.role !== "ADMIN") {
+            document.querySelectorAll(".admin-only").forEach(el => el.style.display="none");
+        }
+    } catch {}
+})();
+
+let incidents = [];
+
+/* ============================
+   LOAD INCIDENTS
+   ============================ */
+async function loadIncidents() {
+
+    const res = await fetch(API + "/incidents", {
+        headers: {"Authorization":"Bearer " + token}
+    });
+
+    if (!res.ok) {
+        alert("Failed to load incidents.");
+        return;
+    }
+
+    incidents = await res.json();
+    renderIncidents(incidents);
+}
+
+
+/* ============================
+   RENDER INCIDENT TABLE
+   ============================ */
+function renderIncidents(list) {
+
+    const body = document.getElementById("incidentBody");
+    const count = document.getElementById("countIncidents");
+
+    body.innerHTML = "";
+    count.textContent = list.length;
+
+    if (!list.length) {
+        body.innerHTML = `<tr>
+            <td colspan="7" class="text-center text-muted">No incidents.</td>
+        </tr>`;
+        return;
+    }
+
+    list.forEach((inc, idx) => {
+
+        const details = inc.details || "";
+
+        // Extract MITRE
+        let mitre = "N/A";
+        const match = details.match(/MITRE Technique:\s*(.*)/);
+        if (match) mitre = match[1];
+
+        // Extract Score
+        let score = "0";
+        const scoreMatch = details.match(/Threat Score:\s*(\d+)/);
+        if (scoreMatch) score = scoreMatch[1];
+
+        // Severity Badge
+        const sevVal = (inc.severity || "LOW").toUpperCase();
+        let sevClass = "sev-low";
+        if (sevVal === "MEDIUM") sevClass = "sev-medium";
+        else if (sevVal === "HIGH") sevClass = "sev-high";
+        else if (sevVal === "CRITICAL") sevClass = "sev-critical";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td>${inc.detectedAt ? new Date(inc.detectedAt).toLocaleString() : "-"}</td>
+            <td><span class="sev-badge ${sevClass}">${sevVal}</span></td>
+            <td><span class="pill">${inc.logEntry?.category || "General"}</span></td>
+            <td><span class="pill">${mitre}</span></td>
+            <td><b>${score}</b>/100</td>
+            <td>
+                <a href="incident-details.html?id=${inc.id}" class="text-info">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <a href="#" class="admin-only btn-del ms-3" onclick="deleteIncident(${inc.id})">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </td>
+        `;
+
+        tr.style.cursor = "pointer";
+        tr.addEventListener("click", (e) => {
+            if (!e.target.closest("a")) {
+                window.location.href = "incident-details.html?id=" + inc.id;
+            }
+        });
+
+        body.appendChild(tr);
+    });
+}
+
+
+/* ============================
+   SEARCH FILTER
+   ============================ */
+document.getElementById("searchBox").addEventListener("input", () => {
+    const q = searchBox.value.toLowerCase();
+
+    const filtered = incidents.filter(inc =>
+        (inc.severity || "").toLowerCase().includes(q) ||
+        (inc.details || "").toLowerCase().includes(q) ||
+        (inc.logEntry?.category || "").toLowerCase().includes(q)
+    );
+    renderIncidents(filtered);
+});
+
+
+/* ============================
+   DELETE INCIDENT
+   ============================ */
+async function deleteIncident(id) {
+    if (!confirm("Delete this incident permanently?")) return;
+
+    const res = await fetch(API + "/incidents/" + id, {
+        method: "DELETE",
+        headers: {"Authorization":"Bearer " + token}
+    });
+
+    if (res.ok) {
+        alert("Incident deleted.");
+        loadIncidents();
+    } else {
+        alert("Failed to delete.");
+    }
+}
+
+
+/* ============================
+   EXPORT JSON / CSV
+   ============================ */
+function exportJSON() {
+    const blob = new Blob([JSON.stringify(incidents, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "incidents.json";
+    a.click();
+}
+
+function exportCSV() {
+    let csv = "id,severity,category,mitre,score,detectedAt\n";
+
+    incidents.forEach(inc => {
+        const details = inc.details || "";
+        const mitre = (details.match(/MITRE Technique:\s*(.*)/) || [,"N/A"])[1];
+        const score = (details.match(/Threat Score:\s*(\d+)/) || [,"0"])[1];
+
+        csv += `${inc.id},${inc.severity},${inc.logEntry?.category},${mitre},${score},${inc.detectedAt}\n`;
+    });
+
+    const blob = new Blob([csv], {type:"text/csv"});
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "incidents.csv";
+    a.click();
+}
+
+
+/* INITIAL LOAD */
+loadIncidents();
+
+</script>
+
+</body>
+</html>

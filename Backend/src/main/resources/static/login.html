@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login — AI Threat Detection Platform</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+
+        body {
+            background: linear-gradient(135deg, #020d0a, #031510, #06261c);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            font-family: "Inter", sans-serif;
+            color: white;
+        }
+
+        /* CYBER GRID */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-size: 45px 45px;
+            background-image:
+            linear-gradient(to right, rgba(0,255,130,.08) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(0,255,130,.08) 1px, transparent 1px);
+            animation: gridMove 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes gridMove {
+            from { transform: translateY(0); }
+            to { transform: translateY(-50px); }
+        }
+
+        /* GLASS LOGIN BOX */
+        .login-card {
+            width: 420px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(0,255,140,0.25);
+            border-radius: 18px;
+            padding: 35px 28px;
+            backdrop-filter: blur(14px);
+            box-shadow: 0 0 35px rgba(0,255,140,0.2);
+        }
+
+        .login-title {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg,#00ffb0,#00c27a);
+            -webkit-background-clip: text;
+            color: transparent;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .pulse {
+            animation: pulseGlow 2s infinite;
+        }
+
+        @keyframes pulseGlow {
+            0% { text-shadow: 0 0 10px rgba(0,255,140,0.5); }
+            50% { text-shadow: 0 0 25px rgba(0,255,140,0.9); }
+            100% { text-shadow: 0 0 10px rgba(0,255,140,0.5); }
+        }
+
+        .cyber-input {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(0,255,140,0.25);
+            color: white;
+        }
+
+        .cyber-input:focus {
+            box-shadow: 0 0 10px #00ffb0;
+            border-color: #00ffb0;
+        }
+
+        .cyber-btn {
+            background: linear-gradient(135deg,#00ffb0,#00c27a);
+            border: none;
+            padding: 12px;
+            color: #04120e;
+            font-weight: 700;
+            border-radius: 10px;
+            transition: .3s;
+        }
+
+        .cyber-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px #00ffb0;
+        }
+
+        .link-text {
+            color: #69ffd4;
+            text-decoration: none;
+        }
+        .link-text:hover {
+            text-decoration: underline;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="login-card">
+    <h2 class="login-title pulse">SOC Secure Login</h2>
+    <p class="text-center mb-4" style="opacity:.8;">Enter your credentials to continue</p>
+
+    <div id="errorBox" class="alert alert-danger d-none"></div>
+
+    <form id="loginForm">
+
+        <div class="mb-3">
+            <label class="mb-1">Email</label>
+            <input type="email" id="email" class="form-control cyber-input" placeholder="admin@example.com" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="mb-1">Password</label>
+            <input type="password" id="password" class="form-control cyber-input" placeholder="••••••••" required>
+        </div>
+
+        <button class="cyber-btn w-100 mt-2">Login</button>
+
+    </form>
+
+    <p class="text-center mt-3">
+        Don't have an account?
+        <a href="register.html" class="link-text">Register here</a>
+    </p>
+</div>
+
+<script>
+    const API_BASE = "http://localhost:8080";
+
+    document.getElementById("loginForm").addEventListener("submit", async e => {
+        e.preventDefault();
+let email = document.getElementById("email").value.trim();
+let pass = document.getElementById("password").value.trim();
+
+        let errorBox = document.getElementById("errorBox");
+
+        try {
+            const res = await fetch(API_BASE + "/api/auth/login", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({email, password: pass})
+            });
+
+            if (!res.ok) {
+                errorBox.classList.remove("d-none");
+                errorBox.innerText = "Invalid login credentials.";
+                return;
+            }
+
+            const data = await res.json();
+            localStorage.setItem("jwt", data.token);
+localStorage.setItem("roles", JSON.stringify(data.roles));
+localStorage.setItem("email", data.email);
+
+            window.location.href = "dashboard.html";
+
+        } catch (err) {
+    console.error("Fetch error:", err);
+    errorBox.classList.remove("d-none");
+    errorBox.innerText = "Network error: " + err.message;
+}
+
+    });
+</script>
+
+</body>
+</html>

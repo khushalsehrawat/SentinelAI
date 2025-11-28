@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard — AI Threat Detection & SOC Platform</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+
+        body {
+            margin: 0;
+            background: linear-gradient(135deg, #020d0a, #031510, #06261c);
+            font-family: "Inter", sans-serif;
+            overflow-x: hidden;
+            color: white;
+        }
+
+        /* CYBER GRID BACKGROUND */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-size: 45px 45px;
+            background-image:
+                linear-gradient(to right, rgba(0,255,130,.08) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,255,130,.08) 1px, transparent 1px);
+            animation: gridMove 20s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes gridMove {
+            from { transform: translateY(0); }
+            to   { transform: translateY(-50px); }
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            background: rgba(0,0,0,0.45);
+            border-right: 1px solid rgba(0,255,120,0.25);
+            backdrop-filter: blur(12px);
+            padding-top: 40px;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 14px 22px;
+            margin: 10px 0;
+            color: #b7ffdd;
+            font-weight: 500;
+            text-decoration: none;
+            transition: 0.3s;
+            border-radius: 8px;
+        }
+
+        .sidebar a:hover,
+        .sidebar a.active {
+            background: rgba(0,255,150,0.18);
+            color: #00ffb0;
+            box-shadow: 0 0 18px rgba(0,255,150,0.25);
+        }
+
+        /* MAIN CONTENT */
+        .main {
+            margin-left: 270px;
+            padding: 40px;
+        }
+
+        .title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #00ffb0;
+        }
+
+        /* KPI CARDS */
+        .kpi-card {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(0,255,140,0.2);
+            border-radius: 14px;
+            padding: 25px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            transition: .3s;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(0,255,150,0.35);
+        }
+
+        .kpi-number {
+            font-size: 2.3rem;
+            font-weight: 800;
+            margin-top: 10px;
+        }
+
+        /* CHART SECTION */
+        .chart-box {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(0,255,140,0.18);
+            border-radius: 14px;
+            padding: 20px;
+            backdrop-filter: blur(8px);
+        }
+
+    </style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+
+    <h3 class="text-center mb-4" style="
+        background: linear-gradient(135deg,#00ffc3,#00c27a);
+        -webkit-background-clip:text;
+        color: transparent;">
+        AI SOC
+    </h3>
+
+    <a href="dashboard.html" class="active"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="logs.html"><i class="fas fa-file-alt"></i> Logs</a>
+    <a href="incidents.html"><i class="fas fa-user-shield"></i> Incidents</a>
+    <a href="alerts.html"><i class="fas fa-bell"></i> Alerts</a>
+    <a href="ip-lookup.html"><i class="fas fa-globe"></i> IP Lookup</a>
+    <a class="admin-only" href="admin-users.html"><i class="fas fa-users"></i> User Management</a>
+
+    <a href="#" class="text-danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+    <h2 class="title">Security Operations Dashboard</h2>
+
+    <!-- KPI CARDS -->
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-3">
+            <div class="kpi-card">
+                <div>Total Incidents</div>
+                <div id="kpiIncidents" class="kpi-number">0</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="kpi-card">
+                <div>Critical Alerts</div>
+                <div id="kpiCritical" class="kpi-number text-danger">0</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="kpi-card">
+                <div>Average Threat Score</div>
+                <div id="kpiAvgScore" class="kpi-number text-warning">0</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="kpi-card">
+                <div>Total Logs</div>
+                <div id="kpiLogs" class="kpi-number">0</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- CHART GRID -->
+    <div class="row g-4">
+
+        <div class="col-md-6">
+            <div class="chart-box">
+                <h5>Threat Timeline</h5>
+                <canvas id="timelineChart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="chart-box">
+                <h5>Severity Distribution</h5>
+                <canvas id="severityChart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="chart-box">
+                <h5>MITRE Technique Frequency</h5>
+                <canvas id="mitreChart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="chart-box">
+                <h5>Threat Heatmap</h5>
+                <canvas id="heatmapChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- JS -->
+<script>
+
+    const API = "http://localhost:8080/api";
+    const token = localStorage.getItem("jwt");
+
+    if (!token) window.location.href = "login.html";
+
+    function logout() {
+        localStorage.removeItem("jwt");
+        window.location.href = "login.html";
+    }
+
+    /* ROLE-BASED UI */
+    function applyRoleBasedUI() {
+        let roles = JSON.parse(localStorage.getItem("roles") || "[]");
+let isAdmin = roles.some(r => r.authority === "ROLE_ADMIN");
+
+if (!isAdmin) {
+    document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
+}
+
+    }
+
+    applyRoleBasedUI();
+
+
+    // ============================
+    // FETCH DATA FOR KPI + CHARTS
+    // ============================
+
+    async function loadDashboard() {
+
+        const incidents = await fetch(API + "/incidents", {
+            headers: { "Authorization": "Bearer " + token }
+        }).then(r => r.json());
+
+        const logs = await fetch(API + "/logs", {
+            headers: { "Authorization": "Bearer " + token }
+        }).then(r => r.json());
+
+
+        // KPI values
+        document.getElementById("kpiIncidents").innerText = incidents.length;
+        document.getElementById("kpiLogs").innerText = logs.length;
+
+        const criticalCount = incidents.filter(x => x.severity === "CRITICAL").length;
+        document.getElementById("kpiCritical").innerText = criticalCount;
+
+        let avgScore = 0;
+        incidents.forEach(i => {
+            const match = i.details.match(/Threat Score: (\d+)/);
+            if (match) avgScore += parseInt(match[1]);
+        });
+        avgScore = Math.round(avgScore / (incidents.length || 1));
+        document.getElementById("kpiAvgScore").innerText = avgScore;
+
+        // Prepare chart data
+        const timelineData = Array(7).fill(0);
+        const severityCount = { LOW: 0, MEDIUM: 0, HIGH: 0, CRITICAL: 0 };
+        const mitreMap = {};
+
+        incidents.forEach(inc => {
+            // timeline distribution dummy
+            timelineData[Math.floor(Math.random() * 7)]++;
+
+            // severity distribution
+            const sevKey = (inc.severity || "LOW").toUpperCase();
+
+            if (severityCount[sevKey] === undefined) {
+
+                severityCount[sevKey] = 0;
+
+            }
+
+            severityCount[sevKey]++;
+
+            
+            // mitre frequency
+            const mitre = (inc.details || "").match(/MITRE Technique: (.*)/);
+            const tech = mitre ? mitre[1] : "Unknown";
+            mitreMap[tech] = (mitreMap[tech] || 0) + 1;
+        });
+
+        drawCharts(timelineData, severityCount, mitreMap);
+    }
+
+
+    // ============================
+    // CHARTS
+    // ============================
+
+    function drawCharts(timelineData, severityCount, mitreMap) {
+
+        // THREAT TIMELINE
+        new Chart(document.getElementById("timelineChart"), {
+            type: 'line',
+            data: {
+                labels: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+                datasets: [{
+                    label: "Incidents",
+                    data: timelineData,
+                    borderColor: "#00ffb0",
+                    backgroundColor: "rgba(0,255,150,0.25)",
+                    fill: true,
+                    tension: 0.35
+                }]
+            }
+        });
+
+        // SEVERITY PIE
+        new Chart(document.getElementById("severityChart"), {
+            type: 'pie',
+            data: {
+                labels: ["LOW","MEDIUM","HIGH","CRITICAL"],
+                datasets: [{
+                    data: [
+                        severityCount.LOW,
+                        severityCount.MEDIUM,
+                        severityCount.HIGH,
+                        severityCount.CRITICAL
+                    ],
+                    backgroundColor: [
+                        "#1f8b4c",
+                        "#e6c32f",
+                        "#ff8822",
+                        "#ff3f3f"
+                    ]
+                }]
+            }
+        });
+
+        // MITRE BAR
+        new Chart(document.getElementById("mitreChart"), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(mitreMap),
+                datasets: [{
+                    label: "Frequency",
+                    data: Object.values(mitreMap),
+                    backgroundColor: "#00c27a"
+                }]
+            }
+        });
+
+        // HEATMAP (Fake Values For Now)
+        new Chart(document.getElementById("heatmapChart"), {
+            type: 'bar',
+            data: {
+                labels: ["00-04","04-08","08-12","12-16","16-20","20-24"],
+                datasets: [{
+                    label: "Threat Density",
+                    data: [4,7,12,8,6,10],
+                    backgroundColor: "rgba(0,255,120,0.35)"
+                }]
+            }
+        });
+    }
+
+    loadDashboard();
+</script>
+
+</body>
+</html>
