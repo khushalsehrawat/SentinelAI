@@ -216,6 +216,31 @@
     animation: fadeIn 0.6s ease-in;
 }
 
+
+
+/* Dropdown row styling */
+.log-expand-row {
+    background: rgba(0,255,120,0.05);
+    backdrop-filter: blur(10px);
+}
+
+.log-expand-box {
+    padding: 18px;
+    border-left: 3px solid #00ffb0;
+    border-right: 3px solid #00ffb0;
+    border-bottom: 3px solid #00ffb0;
+    background: rgba(0,255,120,0.06);
+    border-radius: 0 0 14px 14px;
+    animation: expandAnim 0.35s ease-out;
+    color: #b8ffe4;
+    font-family: "JetBrains Mono", monospace;
+}
+
+@keyframes expandAnim {
+    from { opacity:0; transform:translateY(-5px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
@@ -378,14 +403,13 @@
                 <thead>
                 <tr>
                     <th>#</th>
+                    <th></th>
                     <th>Timestamp</th>
                     <th>Source</th>
                     <th>Severity</th>
                     <th>Category</th>
                     <th>Log Data</th>
                     <th>Actions</th>
-    <th>Title</th>
-    <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody id="logsBody">
@@ -597,66 +621,103 @@ if (!isAdmin) {
     }
 
     function renderLogs(data) {
-        data = data.reverse();
-        logsBody.innerHTML = "";
-        countLogsSpan.textContent = data.length;
+    data = data.reverse();
+    logsBody.innerHTML = "";
+    countLogsSpan.textContent = data.length;
 
-        if (!data.length) {
-            logsBody.innerHTML = `<tr>
-                <td colspan="6" class="text-center text-muted">
-                    No logs found. Inject sample logs to get started.
-                    </td>
-            </tr>`;
-            return;
-        }
-
-        data.forEach((log, idx) => {
-
-            const sev = (log.severity || "LOW").toUpperCase();
-            const cat = log.category || "General";
-
-            let sevClass = "sev-low";
-            if (sev === "MEDIUM") sevClass = "sev-medium";
-            else if (sev === "HIGH") sevClass = "sev-high";
-            else if (sev === "CRITICAL") sevClass = "sev-critical";
-
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${idx + 1}</td>
-    <td>${log.timestamp ? new Date(log.timestamp).toLocaleString() : "-"}</td>
-    <td><span class="pill-cat">${log.source || "-"}</span></td>
-    <td><span class="badge-sev ${sevClass}">${sev}</span></td>
-    <td><span class="pill-cat">${cat}</span></td>
-    <td>
-    <span class="log-text" title="${(log.title || '').replace(/\"/g,'&quot;')}">
-        ${log.title || '(No Title)'}
-    </span>
-</td>
-
-    <td>
-        <button class="btn btn-sm btn-warning me-1" onclick="explainLog(${log.id})">
-            <i class="fas fa-brain"></i>
-        </button>
-        <button class="btn btn-sm btn-danger" onclick="deleteLog(${log.id})">
-            <i class="fas fa-trash"></i>
-        </button>
-    </td>
-
-    <td>
-    <i class="fas fa-robot text-info"
-       style="cursor:pointer; font-size:18px;"
-       onclick="openAIPanel(${log.id})"></i>
-</td>
-
-            `;
-            tr.addEventListener("click", () => {
-                console.log("Full Log Entry:", log);
-                alert("Full log printed in browser console.");
-            });
-
-            logsBody.appendChild(tr);
-        });
+    if (!data.length) {
+        logsBody.innerHTML = `
+            <tr><td colspan="8" class="text-center text-muted">
+                No logs found. Inject sample logs to get started.
+            </td></tr>`;
+        return;
     }
+
+    data.forEach((log, idx) => {
+
+        const sev = (log.severity || "LOW").toUpperCase();
+        const cat = log.category || "General";
+
+        let sevClass = "sev-low";
+        if (sev === "MEDIUM") sevClass = "sev-medium";
+        else if (sev === "HIGH") sevClass = "sev-high";
+        else if (sev === "CRITICAL") sevClass = "sev-critical";
+
+        // MAIN LOG ROW
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td>${log.timestamp ? new Date(log.timestamp).toLocaleString() : "-"}</td>
+            <td><span class="pill-cat">${log.source || "-"}</span></td>
+            <td><span class="badge-sev ${sevClass}">${sev}</span></td>
+            <td><span class="pill-cat">${cat}</span></td>
+
+            <td>
+                <span class="log-text" title="${(log.title || '').replace(/"/g,'&quot;')}">
+                    ${log.title || '(No Title)'}
+                </span>
+            </td>
+
+            <td>
+                <button class="btn btn-sm btn-warning me-1" onclick="event.stopPropagation(); explainLog(${log.id})">
+                    <i class="fas fa-brain"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); deleteLog(${log.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+
+            <td>
+                <i class="fas fa-caret-down text-info" style="cursor:pointer;font-size:20px;"></i>
+            </td>
+        `;
+
+        // EXPANSION ROW
+        const expandRow = document.createElement("tr");
+        expandRow.classList.add("log-expand-row");
+        expandRow.style.display = "none";
+
+        expandRow.innerHTML = `
+            <td colspan="9">
+                <div class="log-expand-box">
+
+                    <h6 class="text-success">
+                        <i class="fas fa-terminal"></i> Raw Log Data
+                    </h6>
+                    <pre style="white-space:pre-wrap;">${log.logData || "Empty"}</pre>
+
+                    <hr class="border-success">
+
+                    <h6 class="text-warning"><i class="fas fa-file-alt"></i> AI Summary</h6>
+                    <pre id="summary-${log.id}" class="text-light">Loading...</pre>
+
+                    <button class="btn-cyber mt-2" onclick="event.stopPropagation(); openAIPanel(${log.id})">
+                        <i class="fas fa-robot"></i> Ask AI
+                    </button>
+                </div>
+            </td>
+        `;
+
+        // ON ROW CLICK = TOGGLE DROPDOWN
+        tr.addEventListener("click", async () => {
+            const currentlyOpen = expandRow.style.display === "table-row";
+            expandRow.style.display = currentlyOpen ? "none" : "table-row";
+
+            if (!currentlyOpen) {
+                // Fetch AI explanation summary (lightweight)
+                const res = await fetch(API + `/logs/explain/${log.id}`, {
+                    headers: { "Authorization": "Bearer " + token }
+                });
+
+                const text = await res.text();
+                document.getElementById(`summary-${log.id}`).textContent = text;
+            }
+        });
+
+        logsBody.appendChild(tr);
+        logsBody.appendChild(expandRow);
+    });
+}
 
     // FILTER
     searchBox.addEventListener("input", () => {

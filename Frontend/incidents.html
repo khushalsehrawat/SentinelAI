@@ -247,186 +247,186 @@
 <!-- SCRIPTS -->
 <script>
     const API = "http://localhost:8080/api";
-    const token = localStorage.getItem("jwt");
+const token = localStorage.getItem("jwt");
 
-    if (!token) window.location.href = "login.html";
+if (!token) window.location.href = "login.html";
 
-    function logout() {
-        localStorage.removeItem("jwt");
-        window.location.href = "login.html";
-    }
+function logout() {
+    localStorage.removeItem("jwt");
+    window.location.href = "login.html";
+}
 
-    // Role-Based UI
-    (function applyRole(){
-        try {
-            const p = JSON.parse(atob(token.split(".")[1]));
-            if (p.role !== "ADMIN") {
-                document.querySelectorAll(".admin-only").forEach(el => el.style.display="none");
-            }
-        } catch {}
-    })();
-
-
-    let incidents = [];
-
-
-    // ============================
-    // LOAD INCIDENTS
-    // ============================
-
-    async function loadIncidents() {
-        const res = await fetch(API + "/incidents", {
-            headers: {"Authorization":"Bearer " + token}
-        });
-
-        if (!res.ok) {
-            alert("Failed to load incidents.");
-            return;
+// Role-Based UI
+(function applyRole(){
+    try {
+        const p = JSON.parse(atob(token.split(".")[1]));
+        if (p.role !== "ADMIN") {
+            document.querySelectorAll(".admin-only").forEach(el => el.style.display="none");
         }
+    } catch {}
+})();
 
-        incidents = await res.json();
-        renderIncidents(incidents);
-    }
+let incidents = [];
 
+/* ============================
+   LOAD INCIDENTS
+   ============================ */
+async function loadIncidents() {
 
-    // ============================
-    // RENDER INCIDENT TABLE
-    // ============================
-
-    function renderIncidents(list) {
-        const body = document.getElementById("incidentBody");
-        const count = document.getElementById("countIncidents");
-
-        body.innerHTML = "";
-        count.textContent = list.length;
-
-        if (!list.length) {
-            body.innerHTML = `<tr>
-                <td colspan="7" class="text-center text-muted">No incidents.</td>
-            </tr>`;
-            return;
-        }
-
-        list.forEach((inc, idx) => {
-
-            // Extract MITRE Technique
-            let mitre = "N/A";
-            const match = details.match(/MITRE Technique:\s*(.*)/);
-            if (match) mitre = match[1];
-
-            // Extract Threat Score
-            let score = "0";
-            const scoreMatch = details.match(/Threat Score:\s*(\d+)/);
-            if (scoreMatch) score = scoreMatch[1];
-
-            const sev = (inc.severity || "LOW").toUpperCase();
-            let sevClass = "sev-low";
-            if (sev === "MEDIUM")  sevClass = "sev-medium";
-            if (sev === "HIGH")    sevClass = "sev-high";
-            if (sev === "CRITICAL")sevClass = "sev-critical";
-
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${idx + 1}</td>
-                <td>${inc.detectedAt ? new Date(inc.detectedAt).toLocaleString() : "-"}</td>
-                <td><span class="sev-badge ${sevClass}">${sev}</span></td>
-                <td><span class="pill">${inc.logEntry?.category || "General"}</span></td>
-                <td><span class="pill">${mitre}</span></td>
-                <td><b>${score}</b>/100</td>
-                <td>
-                    <a href="incident-details.html?id=${inc.id}" class="text-info">
-                        <i class="fas fa-eye"></i>
-                    </a>
-                    <a href="#" class="admin-only btn-del ms-3" onclick="deleteIncident(${inc.id})">
-                        <i class="fas fa-trash"></i>
-                    </a>
-                </td>
-            `;
-
-            tr.style.cursor = "pointer";
-            tr.addEventListener("click", (e) => {
-                if (!e.target.closest("a")) {
-                    window.location.href = "incident-details.html?id=" + inc.id;
-                }
-            });
-
-            body.appendChild(tr);
-        });
-    }
-
-
-    // ============================
-    // SEARCH FILTER
-    // ============================
-
-    document.getElementById("searchBox").addEventListener("input", () => {
-        const q = searchBox.value.toLowerCase();
-        const filtered = incidents.filter(inc =>
-            (inc.severity || "").toLowerCase().includes(q) ||
-            (inc.details || "").toLowerCase().includes(q)  ||
-            (inc.logEntry?.category || "").toLowerCase().includes(q)
-        );
-        renderIncidents(filtered);
+    const res = await fetch(API + "/incidents", {
+        headers: {"Authorization":"Bearer " + token}
     });
 
+    if (!res.ok) {
+        alert("Failed to load incidents.");
+        return;
+    }
 
-    // ============================
-    // DELETE INCIDENT (ADMIN ONLY)
-    // ============================
+    incidents = await res.json();
+    renderIncidents(incidents);
+}
 
-    async function deleteIncident(id) {
-        if (!confirm("Delete this incident permanently?")) return;
 
-        const res = await fetch(API + "/incidents/" + id, {
-            method: "DELETE",
-            headers: {"Authorization": "Bearer " + token}
+/* ============================
+   RENDER INCIDENT TABLE
+   ============================ */
+function renderIncidents(list) {
+
+    const body = document.getElementById("incidentBody");
+    const count = document.getElementById("countIncidents");
+
+    body.innerHTML = "";
+    count.textContent = list.length;
+
+    if (!list.length) {
+        body.innerHTML = `<tr>
+            <td colspan="7" class="text-center text-muted">No incidents.</td>
+        </tr>`;
+        return;
+    }
+
+    list.forEach((inc, idx) => {
+
+        const details = inc.details || "";
+
+        // Extract MITRE
+        let mitre = "N/A";
+        const match = details.match(/MITRE Technique:\s*(.*)/);
+        if (match) mitre = match[1];
+
+        // Extract Score
+        let score = "0";
+        const scoreMatch = details.match(/Threat Score:\s*(\d+)/);
+        if (scoreMatch) score = scoreMatch[1];
+
+        // Severity Badge
+        const sevVal = (inc.severity || "LOW").toUpperCase();
+        let sevClass = "sev-low";
+        if (sevVal === "MEDIUM") sevClass = "sev-medium";
+        else if (sevVal === "HIGH") sevClass = "sev-high";
+        else if (sevVal === "CRITICAL") sevClass = "sev-critical";
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${idx + 1}</td>
+            <td>${inc.detectedAt ? new Date(inc.detectedAt).toLocaleString() : "-"}</td>
+            <td><span class="sev-badge ${sevClass}">${sevVal}</span></td>
+            <td><span class="pill">${inc.logEntry?.category || "General"}</span></td>
+            <td><span class="pill">${mitre}</span></td>
+            <td><b>${score}</b>/100</td>
+            <td>
+                <a href="incident-details.html?id=${inc.id}" class="text-info">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <a href="#" class="admin-only btn-del ms-3" onclick="deleteIncident(${inc.id})">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </td>
+        `;
+
+        tr.style.cursor = "pointer";
+        tr.addEventListener("click", (e) => {
+            if (!e.target.closest("a")) {
+                window.location.href = "incident-details.html?id=" + inc.id;
+            }
         });
 
-        if (res.ok) {
-            alert("Incident deleted.");
-            loadIncidents();
-        } else {
-            alert("Failed to delete.");
-        }
+        body.appendChild(tr);
+    });
+}
+
+
+/* ============================
+   SEARCH FILTER
+   ============================ */
+document.getElementById("searchBox").addEventListener("input", () => {
+    const q = searchBox.value.toLowerCase();
+
+    const filtered = incidents.filter(inc =>
+        (inc.severity || "").toLowerCase().includes(q) ||
+        (inc.details || "").toLowerCase().includes(q) ||
+        (inc.logEntry?.category || "").toLowerCase().includes(q)
+    );
+    renderIncidents(filtered);
+});
+
+
+/* ============================
+   DELETE INCIDENT
+   ============================ */
+async function deleteIncident(id) {
+    if (!confirm("Delete this incident permanently?")) return;
+
+    const res = await fetch(API + "/incidents/" + id, {
+        method: "DELETE",
+        headers: {"Authorization":"Bearer " + token}
+    });
+
+    if (res.ok) {
+        alert("Incident deleted.");
+        loadIncidents();
+    } else {
+        alert("Failed to delete.");
     }
+}
 
 
-    // ============================
-    // EXPORT INCIDENTS
-    // ============================
+/* ============================
+   EXPORT JSON / CSV
+   ============================ */
+function exportJSON() {
+    const blob = new Blob([JSON.stringify(incidents, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
 
-    function exportJSON() {
-        const blob = new Blob([JSON.stringify(incidents, null, 2)], {type:"application/json"});
-        const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "incidents.json";
+    a.click();
+}
 
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "incidents.json";
-        a.click();
-    }
+function exportCSV() {
+    let csv = "id,severity,category,mitre,score,detectedAt\n";
 
-    function exportCSV() {
-        let csv = "id,severity,category,mitre,score,detectedAt\n";
+    incidents.forEach(inc => {
+        const details = inc.details || "";
+        const mitre = (details.match(/MITRE Technique:\s*(.*)/) || [,"N/A"])[1];
+        const score = (details.match(/Threat Score:\s*(\d+)/) || [,"0"])[1];
 
-        incidents.forEach(inc => {
-            const mitre = (inc.details.match(/MITRE Technique:\s*(.*)/) || [,"N/A"])[1];
-            const score = (inc.details.match(/Threat Score:\s*(\d+)/) || [,"0"])[1];
+        csv += `${inc.id},${inc.severity},${inc.logEntry?.category},${mitre},${score},${inc.detectedAt}\n`;
+    });
 
-`${inc.id},${inc.severity},${inc.logEntry?.category},${mitre},${score},${inc.detectedAt}\n`;
-        });
+    const blob = new Blob([csv], {type:"text/csv"});
+    const url = URL.createObjectURL(blob);
 
-        const blob = new Blob([csv], {type:"text/csv"});
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "incidents.csv";
-        a.click();
-    }
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "incidents.csv";
+    a.click();
+}
 
 
-    // INITIAL LOAD
-    loadIncidents();
+/* INITIAL LOAD */
+loadIncidents();
 
 </script>
 

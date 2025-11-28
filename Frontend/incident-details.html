@@ -107,8 +107,8 @@
 
         /* Gauge */
         #scoreGauge {
-            width: 170px;
-            height: 170px;
+            width: 20% !important;
+            height: 20% !important;
         }
 
         .section-box {
@@ -252,131 +252,205 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    const API = "http://localhost:8080/api";
-    const token = localStorage.getItem("jwt");
-    if (!token) window.location.href = "login.html";
+    /* ============================================================
+   GLOBAL CONFIG
+============================================================ */
 
-    function logout() {
-        localStorage.removeItem("jwt");
-        window.location.href = "login.html";
-    }
-
-    /* ROLE CONTROL */
-    (function roleCheck(){
-        try {
-            const p = JSON.parse(atob(token.split(".")[1]));
-            if (p.role !== "ADMIN") {
-                document.querySelectorAll(".admin-only").forEach(x=>x.style.display="none");
-            }
-        } catch {}
-    })();
-
-    // GET INCIDENT ID
-    const params = new URLSearchParams(window.location.search);
-    const incidentId = params.get("id");
+const API = "http://localhost:8080/api";
+const token = localStorage.getItem("jwt");
+if (!token) window.location.href = "login.html";
 
 
-    // LOAD INCIDENT
-    async function loadIncident() {
-        const res = await fetch(API + "/incidents/" + incidentId, {
-            headers: { "Authorization": "Bearer " + token }
-        });
+/* ============================================================
+   LOGOUT
+============================================================ */
+function logout() {
+    localStorage.removeItem("jwt");
+    window.location.href = "login.html";
+}
 
-        if (!res.ok) {
-            alert("Incident not found.");
-            return;
+
+/* ============================================================
+   ROLE CHECK — Hide admin UI for Analysts
+============================================================ */
+(function roleCheck() {
+    try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload.role !== "ADMIN") {
+            document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
         }
+    } catch {}
+})();
 
-        const inc = await res.json();
-        populateData(inc);
+
+/* ============================================================
+   GET INCIDENT ID FROM URL
+============================================================ */
+const params = new URLSearchParams(window.location.search);
+const incidentId = params.get("id");
+
+
+/* ============================================================
+   LOAD INCIDENT
+============================================================ */
+async function loadIncident() {
+    animatePageLoad();
+
+    const res = await fetch(`${API}/incidents/${incidentId}`, {
+        headers: { "Authorization": "Bearer " + token }
+    });
+
+    if (!res.ok) {
+        alert("Incident not found.");
+        return;
     }
 
-    function populateData(inc) {
-
-        document.getElementById("incId").innerText = inc.id;
-        document.getElementById("incTime").innerText = inc.detectedAt ? new Date(inc.detectedAt).toLocaleString() : "-";
-
-        // Severity Badge
-        let sevClass = "sev-low";
-        if (sevVal === "MEDIUM") sevClass = "sev-medium";
-        else if (sevVal === "HIGH") sevClass = "sev-high";
-        else if (sevVal === "CRITICAL") sevClass = "sev-critical";
-
-        document.getElementById("incSeverity").innerHTML =
-            `<span class="sev-badge ${sevClass}">${sevVal}</span>`;
-
-        // Extract data from details
-        const details = inc.details || "";
-
-        const mitre = (details.match(/MITRE Technique:\s*(.*)/) || ["","N/A"])[1];
-        const summary = (details.split("\n")[0] || "No summary");
-
-        const score = parseInt((details.match(/Threat Score:\s*(\d+)/) || ["",10])[1]);
-        const rec = (details.match(/Recommendation:\s*(.*)/) || ["","N/A"])[1];
-
-        const rawLog = inc.logEntry?.LogData || "N/A";
-
-        document.getElementById("mitreBox").innerText = mitre;
-        document.getElementById("summaryBox").innerText = summary;
-        document.getElementById("recBox").innerText = rec;
-        document.getElementById("logBox").innerText = rawLog;
-
-        drawGauge(score);
-    }
+    const inc = await res.json();
+    populateIncidentDetails(inc);
+}
 
 
-    /* ==========================
-       THREAT SCORE GAUGE
-       ========================== */
+/* ============================================================
+   POPULATE DATA INTO UI
+============================================================ */
+function populateIncidentDetails(inc) {
 
-    let gaugeChart;
-    function drawGauge(score) {
-        const ctx = document.getElementById("scoreGauge");
+    // Basic
+    document.getElementById("incId").innerText = inc.id;
+    document.getElementById("incTime").innerText =
+        inc.detectedAt ? new Date(inc.detectedAt).toLocaleString() : "-";
 
-        if (gaugeChart) gaugeChart.destroy();
+    /* ---------------------------
+       SEVERITY BADGE
+    ---------------------------- */
+    const sev = (inc.severity || "LOW").toUpperCase();
+    let sevClass = "sev-low";
 
-        gaugeChart = new Chart(ctx, {
-            type: "doughnut",
-            data: {
-                labels: ["Score", "Remaining"],
-                datasets: [{
-                    data: [score, 100 - score],
-                    backgroundColor: ["#00ffb0", "rgba(255,255,255,0.1)"],
-                    borderWidth: 0,
-                }]
+    if (sev === "MEDIUM") sevClass = "sev-medium";
+    else if (sev === "HIGH") sevClass = "sev-high";
+    else if (sev === "CRITICAL") sevClass = "sev-critical";
+
+    document.getElementById("incSeverity").innerHTML =
+        `<span class="sev-badge ${sevClass}">${sev}</span>`;
+
+
+    /* ---------------------------
+       PARSE DETAILS
+    ---------------------------- */
+    const details = inc.details || "";
+
+    const mitre = (details.match(/MITRE Technique:\s*(.*)/) || ["","N/A"])[1];
+    const summary = details.split("\n")[0] || "No summary";
+    const score = parseInt((details.match(/Threat Score:\s*(\d+)/) || ["","0"])[1]);
+    const rec = (details.match(/Recommendation:\s*(.*)/) || ["","N/A"])[1];
+
+    // Raw Log
+    const rawLog = inc.logEntry?.logData || "N/A";
+
+    // Fill UI
+    document.getElementById("mitreBox").innerText = mitre;
+    document.getElementById("summaryBox").innerText = summary;
+    document.getElementById("recBox").innerText = rec;
+    document.getElementById("logBox").innerText = rawLog;
+
+    drawGauge(score);
+    animateTextReveal();
+}
+
+
+/* ============================================================
+   NEON GAUGE CHART
+============================================================ */
+let gaugeChart;
+
+function drawGauge(score) {
+    const ctx = document.getElementById("scoreGauge");
+
+    if (gaugeChart) gaugeChart.destroy();
+
+    gaugeChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: ["Score", "Remaining"],
+            datasets: [{
+                data: [score, 100 - score],
+                backgroundColor: [
+                    "rgba(0,255,180,0.95)",
+                    "rgba(255,255,255,0.08)"
+                ],
+                hoverOffset: 4,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            cutout: "72%",
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
             },
-            options: {
-                cutout: "75%",
-                plugins: {
-                    legend: { display: false },
-                    tooltip: { enabled: false }
-                }
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 1200,
+                easing: "easeOutQuart"
             }
-        });
-    }
+        }
+    });
+}
 
 
-    /* ==========================
-       EXPORT PDF
-       ========================== */
+/* ============================================================
+   PDF EXPORT (Premium Sharp Quality)
+============================================================ */
+async function generatePDF() {
+    const { jsPDF } = window.jspdf;
 
-    async function generatePDF() {
-        const { jsPDF } = window.jspdf;
+    const element = document.getElementById("detailsPage");
 
-        const element = document.getElementById("detailsPage");
+    const canvas = await html2canvas(element, { scale: 3 });
+    const imgData = canvas.toDataURL("image/png");
 
-        const canvas = await html2canvas(element, { scale: 2 });
-        const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+    const width = pdf.internal.pageSize.getWidth();
+    const height = canvas.height * width / canvas.width;
 
-        const pdf = new jsPDF("p", "mm", "a4");
-        const width = pdf.internal.pageSize.getWidth();
-        const height = canvas.height * width / canvas.width;
+    pdf.addImage(imgData, "PNG", 0, 0, width, height);
+    pdf.save(`incident_${incidentId}.pdf`);
+}
 
-        pdf.addImage(imgData, "PNG", 0, 0, width, height);
-        pdf.save(`incident_${incidentId}.pdf`);
-    }
 
-    loadIncident();
+/* ============================================================
+   ANIMATIONS — luxury cyber UI
+============================================================ */
+
+/* Fade Elements on Load */
+function animatePageLoad() {
+    document.querySelector(".main").style.opacity = 0;
+    setTimeout(() => {
+        document.querySelector(".main").style.transition = "1.2s";
+        document.querySelector(".main").style.opacity = 1;
+    }, 80);
+}
+
+/* Neon Text Reveal */
+function animateTextReveal() {
+    document.querySelectorAll(".section-box, .details-card").forEach((el, i) => {
+        el.style.opacity = 0;
+        el.style.transform = "translateY(20px)";
+        setTimeout(() => {
+            el.style.transition = "0.7s";
+            el.style.opacity = 1;
+            el.style.transform = "translateY(0)";
+        }, 150 + i * 80);
+    });
+}
+
+
+/* ============================================================
+   INIT
+============================================================ */
+loadIncident();
+
 </script>
 
 </body>

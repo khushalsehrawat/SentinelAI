@@ -35,6 +35,21 @@ public class AlertService {
         Alert alert = new Alert("EMAIL", message, incident, severity);
         Alert saved = alertRepository.save(alert);
 
+        alert.setType("EMAIL");
+        alert.setMessage(message);
+        alert.setSeverity(severity);
+        alert.setIncident(incident);
+        alert.setStatus("NEW");
+
+        // Forward log title/category
+        if (incident.getLogEntry() != null) {
+            alert.setTitle(incident.getLogEntry().getTitle());
+            alert.setUserCategory(incident.getLogEntry().getUserCategory());
+        }
+
+        saved = alertRepository.save(alert);
+
+
         // send email (best-effort; if mail fails we still keep alert row)
         try {
             SimpleMailMessage mail = new SimpleMailMessage();

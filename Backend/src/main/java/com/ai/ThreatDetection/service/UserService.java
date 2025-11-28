@@ -74,4 +74,25 @@ public class UserService implements UserDetailsService {
                 Collections.singleton(authority)
         );
     }
+
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    public void resetPassword(Long id, String newPassword) {
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        u.setPassword(encoder.encode(newPassword));
+        userRepository.save(u);
+    }
+
+    public void updateRole(Long id, String role) {
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        u.setRole(User.Role.valueOf(role.toUpperCase()));
+        userRepository.save(u);
+    }
+
 }
