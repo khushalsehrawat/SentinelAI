@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Incident Details — AI SOC Platform</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <!-- jsPDF + html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            background: linear-gradient(135deg,#020d0a,#031510,#06261c);
+            font-family: "Inter", sans-serif;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* Grid */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(to right, rgba(0,255,130,0.08) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,255,130,0.08) 1px, transparent 1px);
+            background-size: 45px 45px;
+            animation: gridMove 20s linear infinite;
+            z-index: -1;
+        }
+        @keyframes gridMove {
+            from {transform: translateY(0);}
+            to   {transform: translateY(-50px);}
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            position: fixed;
+            background: rgba(0,0,0,0.45);
+            border-right: 1px solid rgba(0,255,120,0.25);
+            backdrop-filter: blur(12px);
+            padding-top: 40px;
+        }
+        .sidebar h3 {
+            background: linear-gradient(135deg,#00ffc3,#00c27a);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+        .sidebar a {
+            display:block;
+            padding:14px 22px;
+            margin:10px 0;
+            color:#b7ffdd;
+            text-decoration:none;
+            transition:.3s;
+            border-radius:8px;
+        }
+        .sidebar a:hover,
+        .sidebar a.active {
+            background:rgba(0,255,150,0.18);
+            color:#00ffb0;
+            box-shadow:0 0 18px rgba(0,255,150,0.25);
+        }
+
+        /* Main */
+        .main {
+            margin-left:270px;
+            padding:40px 40px 80px;
+        }
+        .title {
+            font-size:2rem;
+            font-weight:700;
+            color:#00ffb0;
+        }
+        .sub {
+            opacity:.85;
+            margin-top:-5px;
+        }
+
+        .details-card {
+            background:rgba(255,255,255,0.08);
+            border:1px solid rgba(0,255,130,0.25);
+            border-radius:14px;
+            padding:25px;
+            backdrop-filter:blur(12px);
+        }
+
+        /* Severity Badge */
+        .sev-badge {
+            padding:8px 14px;
+            border-radius:999px;
+            font-weight:700;
+        }
+        .sev-low { background:rgba(0,180,80,0.15); color:#5effad; }
+        .sev-medium { background:rgba(255,200,60,0.18); color:#ffe699; }
+        .sev-high { background:rgba(255,120,60,0.19); color:#ffb088; }
+        .sev-critical { background:rgba(255,60,60,0.22); color:#ff8a8a; }
+
+        /* Gauge */
+        #scoreGauge {
+            width: 20% !important;
+            height: 20% !important;
+        }
+
+        .section-box {
+            margin-top: 25px;
+            padding:20px;
+            background:rgba(255,255,255,0.06);
+            border-radius:14px;
+            border:1px solid rgba(0,255,130,0.22);
+        }
+
+        .log-box {
+            background:black;
+            padding:14px;
+            border-radius:10px;
+            border:1px solid rgba(0,255,120,0.3);
+            font-family: monospace;
+            white-space: pre-wrap;
+            color:#b6ffdf;
+            max-height:260px;
+            overflow-y:auto;
+        }
+
+        .btn-cyber {
+            background:linear-gradient(135deg,#00ffb0,#00c27a);
+            border:none;
+            color:#03120c;
+            font-weight:700;
+            border-radius:10px;
+            padding:12px 20px;
+            transition:.3s;
+        }
+
+        .btn-cyber:hover {
+            transform:scale(1.05);
+            box-shadow:0 0 20px #00ffb0;
+        }
+
+        @media(max-width:768px){
+            .sidebar{
+                width:100%;
+                height:auto;
+                position:static;
+                display:flex;
+                flex-wrap:wrap;
+                justify-content:center;
+            }
+            .main{
+                margin-left:0;
+                padding:20px 20px 60px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h3 class="text-center mb-4">AI SOC</h3>
+
+    <a href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+    <a href="logs.html"><i class="fas fa-file-alt"></i> Logs</a>
+    <a href="incidents.html" class="active"><i class="fas fa-user-shield"></i> Incidents</a>
+    <a href="alerts.html"><i class="fas fa-bell"></i> Alerts</a>
+    <a href="ip-lookup.html"><i class="fas fa-globe"></i> IP Lookup</a>
+    <a href="admin-users.html" class="admin-only"><i class="fas fa-users"></i> User Management</a>
+
+    <a href="#" onclick="logout()" class="text-danger mt-2">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+</div>
+
+<!-- MAIN -->
+<div class="main" id="detailsPage">
+
+    <h2 class="title">Incident Details</h2>
+    <p class="sub">Full AI-analyzed view with severity, MITRE mapping, and remediation steps.</p>
+
+    <button class="btn-cyber mt-3 mb-4" onclick="generatePDF()">
+        <i class="fas fa-file-pdf"></i> Export as PDF
+    </button>
+
+    <!-- DETAILS CARD -->
+    <div class="details-card">
+
+        <h4>Overview</h4>
+        <hr class="border-success">
+
+        <div class="row mt-3">
+            <div class="col-md-4 mb-3">
+                <div class="fw-bold">Incident ID:</div>
+                <div id="incId"></div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <div class="fw-bold">Created At:</div>
+                <div id="incTime"></div>
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <div class="fw-bold">Severity:</div>
+                <div id="incSeverity"></div>
+            </div>
+        </div>
+
+        <!-- SCORE GAUGE -->
+        <div class="text-center mt-4">
+            <canvas id="scoreGauge"></canvas>
+            <div class="mt-2" style="opacity:.8;">Threat Score</div>
+        </div>
+
+        <!-- MITRE -->
+        <div class="section-box">
+            <h5><i class="fas fa-network-wired text-success"></i> MITRE Technique</h5>
+            <div id="mitreBox" class="mt-2"></div>
+        </div>
+
+        <!-- SUMMARY -->
+        <div class="section-box">
+            <h5><i class="fas fa-align-left text-success"></i> Summary</h5>
+            <div id="summaryBox" class="mt-2"></div>
+        </div>
+
+        <!-- RECOMMENDATION -->
+        <div class="section-box">
+            <h5><i class="fas fa-lightbulb text-warning"></i> Recommendations</h5>
+            <div id="recBox" class="mt-2"></div>
+        </div>
+
+        <!-- RAW LOG -->
+        <div class="section-box">
+            <h5><i class="fas fa-terminal text-info"></i> Raw Log Data</h5>
+            <div id="logBox" class="log-box"></div>
+        </div>
+
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    /* ============================================================
+   GLOBAL CONFIG
+============================================================ */
+
+const API = "http://localhost:8080/api";
+const token = localStorage.getItem("jwt");
+if (!token) window.location.href = "login.html";
+
+
+/* ============================================================
+   LOGOUT
+============================================================ */
+function logout() {
+    localStorage.removeItem("jwt");
+    window.location.href = "login.html";
+}
+
+
+/* ============================================================
+   ROLE CHECK — Hide admin UI for Analysts
+============================================================ */
+(function roleCheck() {
+    try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload.role !== "ADMIN") {
+            document.querySelectorAll(".admin-only").forEach(el => el.style.display = "none");
+        }
+    } catch {}
+})();
+
+
+/* ============================================================
+   GET INCIDENT ID FROM URL
+============================================================ */
+const params = new URLSearchParams(window.location.search);
+const incidentId = params.get("id");
+
+
+/* ============================================================
+   LOAD INCIDENT
+============================================================ */
+async function loadIncident() {
+    animatePageLoad();
+
+    const res = await fetch(`${API}/incidents/${incidentId}`, {
+        headers: { "Authorization": "Bearer " + token }
+    });
+
+    if (!res.ok) {
+        alert("Incident not found.");
+        return;
+    }
+
+    const inc = await res.json();
+    populateIncidentDetails(inc);
+}
+
+
+/* ============================================================
+   POPULATE DATA INTO UI
+============================================================ */
+function populateIncidentDetails(inc) {
+
+    // Basic
+    document.getElementById("incId").innerText = inc.id;
+    document.getElementById("incTime").innerText =
+        inc.detectedAt ? new Date(inc.detectedAt).toLocaleString() : "-";
+
+    /* ---------------------------
+       SEVERITY BADGE
+    ---------------------------- */
+    const sev = (inc.severity || "LOW").toUpperCase();
+    let sevClass = "sev-low";
+
+    if (sev === "MEDIUM") sevClass = "sev-medium";
+    else if (sev === "HIGH") sevClass = "sev-high";
+    else if (sev === "CRITICAL") sevClass = "sev-critical";
+
+    document.getElementById("incSeverity").innerHTML =
+        `<span class="sev-badge ${sevClass}">${sev}</span>`;
+
+
+    /* ---------------------------
+       PARSE DETAILS
+    ---------------------------- */
+    const details = inc.details || "";
+
+    const mitre = (details.match(/MITRE Technique:\s*(.*)/) || ["","N/A"])[1];
+    const summary = details.split("\n")[0] || "No summary";
+    const score = parseInt((details.match(/Threat Score:\s*(\d+)/) || ["","0"])[1]);
+    const rec = (details.match(/Recommendation:\s*(.*)/) || ["","N/A"])[1];
+
+    // Raw Log
+    const rawLog = inc.logEntry?.logData || "N/A";
+
+    // Fill UI
+    document.getElementById("mitreBox").innerText = mitre;
+    document.getElementById("summaryBox").innerText = summary;
+    document.getElementById("recBox").innerText = rec;
+    document.getElementById("logBox").innerText = rawLog;
+
+    drawGauge(score);
+    animateTextReveal();
+}
+
+
+/* ============================================================
+   NEON GAUGE CHART
+============================================================ */
+let gaugeChart;
+
+function drawGauge(score) {
+    const ctx = document.getElementById("scoreGauge");
+
+    if (gaugeChart) gaugeChart.destroy();
+
+    gaugeChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+            labels: ["Score", "Remaining"],
+            datasets: [{
+                data: [score, 100 - score],
+                backgroundColor: [
+                    "rgba(0,255,180,0.95)",
+                    "rgba(255,255,255,0.08)"
+                ],
+                hoverOffset: 4,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            cutout: "72%",
+            plugins: {
+                legend: { display: false },
+                tooltip: { enabled: false }
+            },
+            animation: {
+                animateRotate: true,
+                animateScale: true,
+                duration: 1200,
+                easing: "easeOutQuart"
+            }
+        }
+    });
+}
+
+
+/* ============================================================
+   PDF EXPORT (Premium Sharp Quality)
+============================================================ */
+async function generatePDF() {
+    const { jsPDF } = window.jspdf;
+
+    const element = document.getElementById("detailsPage");
+
+    const canvas = await html2canvas(element, { scale: 3 });
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const width = pdf.internal.pageSize.getWidth();
+    const height = canvas.height * width / canvas.width;
+
+    pdf.addImage(imgData, "PNG", 0, 0, width, height);
+    pdf.save(`incident_${incidentId}.pdf`);
+}
+
+
+/* ============================================================
+   ANIMATIONS — luxury cyber UI
+============================================================ */
+
+/* Fade Elements on Load */
+function animatePageLoad() {
+    document.querySelector(".main").style.opacity = 0;
+    setTimeout(() => {
+        document.querySelector(".main").style.transition = "1.2s";
+        document.querySelector(".main").style.opacity = 1;
+    }, 80);
+}
+
+/* Neon Text Reveal */
+function animateTextReveal() {
+    document.querySelectorAll(".section-box, .details-card").forEach((el, i) => {
+        el.style.opacity = 0;
+        el.style.transform = "translateY(20px)";
+        setTimeout(() => {
+            el.style.transition = "0.7s";
+            el.style.opacity = 1;
+            el.style.transform = "translateY(0)";
+        }, 150 + i * 80);
+    });
+}
+
+
+/* ============================================================
+   INIT
+============================================================ */
+loadIncident();
+
+</script>
+
+</body>
+</html>
