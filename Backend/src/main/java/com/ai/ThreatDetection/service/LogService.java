@@ -3,6 +3,7 @@ package com.ai.ThreatDetection.service;
 import com.ai.ThreatDetection.entity.Alert;
 import com.ai.ThreatDetection.entity.Incident;
 import com.ai.ThreatDetection.entity.LogEntry;
+import com.ai.ThreatDetection.entity.User;
 import com.ai.ThreatDetection.repository.IncidentRepository;
 import com.ai.ThreatDetection.repository.LogRepository;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,9 @@ public class LogService {
     private final IncidentRepository incidentRepository;
     private final AIService aiService;
     private final AlertService alertService;
+    private final UserService userService;
+    private final CurrentUserService currentUserService;
+
 
     // Example: send alerts to this email (can externalize later)
     private static final String ADMIN_ALERT_EMAIL = "your_email@gmail.com";
@@ -39,11 +43,13 @@ public class LogService {
     public LogService(LogRepository logRepository,
                       IncidentRepository incidentRepository,
                       AIService aiService,
-                      AlertService alertService) {
+                      AlertService alertService, UserService userService, CurrentUserService currentUserService) {
         this.logRepository = logRepository;
         this.incidentRepository = incidentRepository;
         this.aiService = aiService;
         this.alertService = alertService;
+        this.userService = userService;
+        this.currentUserService = currentUserService;
     }
 
     /**
@@ -60,10 +66,18 @@ public class LogService {
         // 1) Save base log
         LogEntry entry = new LogEntry(rawLogData, source);
 
+        User current = currentUserService.getCurrentUser();
+        entry.setUser(current);
+
+
         entry.setLogData(rawLogData);  // or setLogData(...) based on your field
         entry.setSource(source);
         entry.setTitle(title);
         entry.setUserCategory(userCategory);
+
+
+        // 🔥 attach current logged-in user
+        entry.setUser(currentUserService.getCurrentUser());
 
         entry = logRepository.save(entry);
 
@@ -116,7 +130,14 @@ public class LogService {
     }
 
     public List<LogEntry> list() {
-        return logRepository.findAll();
+        if (currentUserService.isAdmin()) {
+            // ADMIN sees everything
+            return logRepository.findAll();
+        }
+
+        // Normal user → only their own logs
+        var user = currentUserService.getCurrentUser();
+        return logRepository.findByUser(user);
     }
 
     public LogEntry find(Long id) {
