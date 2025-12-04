@@ -53,8 +53,8 @@ public class LogController {
     // ────────────────────────────────
     @PreAuthorize("hasAnyRole('ADMIN','ANALYST')")
     @GetMapping
-    public ResponseEntity<List<LogEntry>> list() {
-        return ResponseEntity.ok(logService.list());
+    public List<LogEntry> list() {
+        return logService.list();
     }
 
 
