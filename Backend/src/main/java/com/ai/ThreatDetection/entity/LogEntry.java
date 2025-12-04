@@ -41,13 +41,20 @@ public class LogEntry {
     @JsonBackReference
     private Incident incident;
 
+
+    @ManyToOne
+    @JoinColumn(name="user_id")
+    private User user;
+
+
     private String title;
     private String userCategory;
 
 
+
     public LogEntry(){}
 
-    public LogEntry(Long id, String logData, String source, Date timestamp, String severity, String category, String recommendation, Incident incident, String title, String userCategory) {
+    public LogEntry(Long id, String logData, String source, Date timestamp, String severity, String category, String recommendation, Incident incident, User user, String title, String userCategory) {
         this.id = id;
         this.logData = logData;
         this.source = source;
@@ -56,6 +63,7 @@ public class LogEntry {
         this.category = category;
         this.recommendation = recommendation;
         this.incident = incident;
+        this.user = user;
         this.title = title;
         this.userCategory = userCategory;
     }
@@ -147,5 +155,13 @@ public class LogEntry {
 
     public void setUserCategory(String userCategory) {
         this.userCategory = userCategory;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
