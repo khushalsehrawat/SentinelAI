@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
+@Table(name = "users") // ✅ PostgreSQL-safe table name
 public class User {
 
     @Id
