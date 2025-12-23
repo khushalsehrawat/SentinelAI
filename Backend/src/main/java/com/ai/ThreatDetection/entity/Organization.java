@@ -14,6 +14,8 @@ public class Organization {
 
     private String name;
 
+    public Organization(){}
+    
     public Organization(Long id, String name) {
         this.id = id;
         this.name = name;
