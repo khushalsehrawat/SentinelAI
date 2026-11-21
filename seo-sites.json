@@ -1,0 +1,39 @@
+{
+  "sites": [
+    {
+      "name": "SentinelAI",
+      "root": "Frontend",
+      "base_url": "https://khushalsehrawat.github.io/SentinelAI/Frontend/",
+      "pages": {
+        "admin-users.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/admin-users.html",
+        "alerts.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/alerts.html",
+        "dashboard.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/dashboard.html",
+        "incident-details.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/incident-details.html",
+        "incidents.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/incidents.html",
+        "index.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/",
+        "ip-lookup.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/ip-lookup.html",
+        "login.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/login.html",
+        "logs.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/logs.html",
+        "register.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/register.html"
+      }
+    },
+    {
+      "name": "SentinelAI packaged-copy",
+      "root": "Backend/src/main/resources/static",
+      "base_url": "https://khushalsehrawat.github.io/SentinelAI/Frontend/",
+      "pages": {
+        "admin-users.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/admin-users.html",
+        "alerts.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/alerts.html",
+        "dashboard.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/dashboard.html",
+        "incident-details.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/incident-details.html",
+        "incidents.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/incidents.html",
+        "index.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/",
+        "ip-lookup.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/ip-lookup.html",
+        "login.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/login.html",
+        "logs.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/logs.html",
+        "lotr.html": null,
+        "register.html": "https://khushalsehrawat.github.io/SentinelAI/Frontend/register.html"
+      }
+    }
+  ]
+}
