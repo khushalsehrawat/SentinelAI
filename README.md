@@ -187,7 +187,7 @@ Built for showcasing GenAI + Spring Security + SOC workflows in one compact proj
 
 Both static UI locations, `Frontend/` and `Backend/src/main/resources/static/`, include page-specific descriptions, viewport metadata, TheBenzzCreations author/creator metadata, Open Graph metadata and Twitter card metadata. All 21 HTML files retain their original titles and SentinelAI branding.
 
-Each deployment's homepage (`index.html`) includes one WebSite JSON-LD block identifying the genuine creator and one visible developer credit in the existing footer. These are two deployment copies, not duplicate credits on a served page. The promotional link uses `rel="noopener noreferrer nofollow"`.
+Each deployment's homepage (`index.html`) includes one WebSite JSON-LD block identifying the genuine creator and one visible developer credit in the existing footer. These are two deployment copies, not duplicate credits on a served page. The promotional link uses `rel="nofollow"`.
 
 The official public URL has not been supplied. Canonical links, `og:url` and the WebSite `url` are omitted until SentinelAI's public URL is verified. Do not use the developer website as the application's canonical URL. No dedicated social preview image is configured. Structured data does not guarantee search rich results.
 
